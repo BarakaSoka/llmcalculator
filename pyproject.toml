@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llmcalculator"
+version = "0.1.0"
+description = "Work out which AI models your computer can run, fine-tune, or train."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "llmcalculator contributors" }]
+keywords = ["llm", "gpu", "vram", "hardware", "inference", "finetuning", "ollama", "quantization"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: System :: Benchmark",
+]
+
+# The core library and CLI run on the standard library alone, so that
+# `pipx install llmcalculator` cannot fail on a dependency resolution.
+dependencies = []
+
+[project.optional-dependencies]
+pretty = ["rich>=13.0"]
+tui = ["textual>=0.60"]
+all = ["rich>=13.0", "textual>=0.60"]
+dev = ["rich>=13.0", "textual>=0.60", "pytest>=7.0", "build", "twine"]
+
+[project.scripts]
+llmcalc = "llmcalculator.cli:main"
+llmcalculator = "llmcalculator.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/llmcalculator/llmcalculator"
+Issues = "https://github.com/llmcalculator/llmcalculator/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+llmcalculator = ["models/*.json", "ui/*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

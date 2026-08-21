@@ -1,0 +1,428 @@
+"""Command line interface.
+
+Built on argparse so `llmcalc` works on a bare Python install with nothing
+pip-installed beyond this package itself.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from typing import List, Optional
+
+from . import __version__, compare, quant, workloads
+from .estimate import (
+    Verdict, best_quant, estimate as estimate_one, max_model_size,
+    recommended_quant, sweep,
+)
+from .hardware import detect, manual
+from .hardware.base import HardwareProfile
+from .models import catalog
+from .ui import render
+
+
+def _parse_context(value: str) -> int:
+    """Accept 8192, 8k, 128K."""
+    v = str(value).strip().lower()
+    try:
+        if v.endswith("k"):
+            return int(float(v[:-1]) * 1024)
+        return int(v)
+    except ValueError:
+        raise argparse.ArgumentTypeError("Context must be a number like 8192 or 8k, got {!r}".format(value))
+
+
+def _hardware_from_args(args) -> HardwareProfile:
+    if getattr(args, "vram", None) is not None or getattr(args, "ram", None) is not None:
+        return manual(
+            vram_gb=args.vram or 0.0,
+            ram_gb=args.ram or 16.0,
+            gpu_name=getattr(args, "gpu_name", None) or "Custom GPU",
+        )
+    return detect()
+
+
+def _resolve_model(name: str, use_hf: bool = False):
+    if use_hf or ("/" in name and name.count("/") == 1):
+        try:
+            return catalog.get(name)
+        except KeyError:
+            return catalog.from_hf(name)
+    return catalog.get(name)
+
+
+# --- commands --------------------------------------------------------------
+
+def cmd_scan(args) -> int:
+    """Show the machine and what it can do across every workload."""
+    hw = _hardware_from_args(args)
+
+    if args.json:
+        print(json.dumps(_scan_dict(hw), indent=2))
+        return 0
+
+    render.heading("Your machine")
+    for line in hw.summary_lines():
+        print("  " + line)
+
+    render.heading("What this machine can do")
+    rows, colors = [], []
+    for wl in workloads.ALL:
+        ctx = 8192 if wl.key == "inference" else 2048
+        max_b = max_model_size(hw, wl, context=ctx)
+        best = compare.largest_that_fits(hw, wl, context=ctx)
+        if best:
+            example = "{} ({})".format(best.model.name, best.quant_name)
+            colors.append(None)
+        else:
+            example = "nothing in the catalog fits"
+            colors.append("red")
+        rows.append([wl.label, "~{:.0f}B".format(max_b), wl.default_base_quant, example])
+    render.table(["Workload", "Max size", "Precision", "Largest that fits"], rows, colors=colors)
+
+    render.heading("Recommended models for inference")
+    recs = compare.recommend(hw, limit=5, context=args.context)
+    rows = []
+    for r in recs:
+        e = r.estimate
+        rows.append([e.model.name, e.quant_name, "{:.1f} GB".format(e.total_gb),
+                     "{:.0f} tok/s".format(e.tokens_per_sec), r.reason])
+    if rows:
+        render.table(["Model", "Quant", "Memory", "Speed", "Why"], rows)
+    else:
+        print("  Nothing in the catalog fits. Try a smaller context with --context 2048.")
+
+    for note in hw.notes:
+        print()
+        print(render.paint("  Note: " + note, "dim"))
+
+    print()
+    print(render.paint("  Next: llmcalc check <model>   or   llmcalc compare a b c", "dim"))
+    return 0
+
+
+def _scan_dict(hw: HardwareProfile) -> dict:
+    out = {
+        "cpu": {"name": hw.cpu.name, "cores": hw.cpu.cores, "arch": hw.cpu.arch},
+        "ram_gb": round(hw.ram_gb, 1),
+        "disk_free_gb": round(hw.disk_free_gb, 1),
+        "platform": hw.platform,
+        "accelerators": [
+            {"name": a.name, "vendor": a.vendor, "memory_gb": round(a.memory_gb, 1),
+             "bandwidth_gbs": a.bandwidth_gbs, "fp16_tflops": a.fp16_tflops,
+             "unified_memory": a.unified_memory}
+            for a in hw.accelerators
+        ],
+        "budgets_gb": {d: round(hw.budget_bytes(d) / (1024 ** 3), 1)
+                       for d in ("gpu", "cpu", "all-gpus")},
+        "capabilities": {},
+        "notes": hw.notes,
+    }
+    for wl in workloads.ALL:
+        ctx = 8192 if wl.key == "inference" else 2048
+        best = compare.largest_that_fits(hw, wl, context=ctx)
+        out["capabilities"][wl.key] = {
+            "max_params_b": round(max_model_size(hw, wl, context=ctx), 1),
+            "largest_model": best.model.name if best else None,
+        }
+    return out
+
+
+def cmd_check(args) -> int:
+    """Size one model, optionally across every workload."""
+    hw = _hardware_from_args(args)
+    try:
+        model = _resolve_model(args.model, args.hf)
+    except (KeyError, RuntimeError) as exc:
+        print(render.paint("Error: {}".format(exc), "red"), file=sys.stderr)
+        return 2
+
+    if args.all_workloads:
+        ests = compare.workload_table(model, hw, context=args.context, device=args.device)
+        if args.json:
+            print(json.dumps([e.as_dict() for e in ests], indent=2))
+            return 0
+        render.heading("{} on your machine".format(model.name))
+        print(render.paint("  {}".format(model.describe()), "dim"))
+        print(render.paint("  Budget: {:.1f} GB at {} context".format(
+            ests[0].budget_gb, render.fmt_ctx(args.context)), "dim"))
+        rows, colors = [], []
+        for e in ests:
+            rows.append([e.workload.label, e.quant_name, "{:.1f} GB".format(e.total_gb),
+                         render.bar(e.utilization, 12), render.verdict_cell(e)])
+            colors.append(render.VERDICT_COLOR[e.verdict])
+        render.table(["Workload", "Base", "Needs", "Usage", "Verdict"],
+                     rows, colors=colors)
+        _print_first_blocker(ests)
+        return 0
+
+    wl = workloads.get(args.workload)
+    if args.quant:
+        est = estimate_one(model, hw, wl, args.quant, context=args.context,
+                               batch=args.batch, device=args.device, kv_quant=args.kv_quant)
+    else:
+        est = recommended_quant(model, hw, wl, context=args.context, batch=args.batch,
+                                device=args.device, kv_quant=args.kv_quant)
+
+    if args.json:
+        print(json.dumps(est.as_dict(), indent=2))
+        return 0 if est.fits else 1
+
+    render.estimate_detail(est)
+
+    if args.quant is None and wl.key == "inference":
+        render.heading("All quantizations")
+        rows, colors = [], []
+        for e in compare.quant_table(model, hw, wl, context=args.context, device=args.device):
+            rows.append([e.quant_name, "{:.1f} GB".format(e.total_gb),
+                         render.bar(e.utilization, 12),
+                         "{:.0f} tok/s".format(e.tokens_per_sec) if e.tokens_per_sec else "-",
+                         "{:.0f}%".format(e.quality * 100), render.verdict_cell(e)])
+            colors.append(render.VERDICT_COLOR[e.verdict])
+        render.table(["Format", "Memory", "Usage", "Speed", "Quality", "Verdict"],
+                     rows, colors=colors)
+    print()
+    return 0 if est.fits else 1
+
+
+def _print_first_blocker(ests) -> None:
+    for e in ests:
+        if not e.fits and e.notes:
+            print()
+            print(render.paint("  {}: {}".format(e.workload.label, e.notes[0]), "yellow"))
+            for extra in e.notes[1:2]:
+                print(render.paint("  {}".format(extra), "dim"))
+            return
+
+
+def cmd_compare(args) -> int:
+    """Put several models side by side."""
+    hw = _hardware_from_args(args)
+    wl = workloads.get(args.workload)
+    try:
+        ests = compare.compare(args.models, hw, wl, args.quant, args.context, args.device)
+    except (KeyError, RuntimeError) as exc:
+        print(render.paint("Error: {}".format(exc), "red"), file=sys.stderr)
+        return 2
+
+    if args.json:
+        print(json.dumps([e.as_dict() for e in ests], indent=2))
+        return 0
+
+    render.heading("Comparison - {} at {} context".format(wl.label, render.fmt_ctx(args.context)))
+    rows, colors = [], []
+    for e in ests:
+        rows.append([
+            e.model.name,
+            "{:.1f}B".format(e.model.params_b),
+            e.quant_name,
+            "{:.1f} GB".format(e.total_gb),
+            "{:.0f}%".format(e.utilization * 100),
+            "{:.0f} tok/s".format(e.tokens_per_sec) if e.tokens_per_sec else "-",
+            render.verdict_cell(e),
+        ])
+        colors.append(render.VERDICT_COLOR[e.verdict])
+    render.table(["Model", "Size", "Quant", "Memory", "Used", "Speed", "Verdict"],
+                 rows, colors=colors)
+
+    fitting = [e for e in ests if e.fits]
+    if fitting:
+        best = max(fitting, key=lambda e: e.model.params)
+        fastest = max(fitting, key=lambda e: e.tokens_per_sec)
+        print()
+        print("  Most capable that fits: {}".format(render.paint(best.model.name, "green")))
+        if fastest.model.name != best.model.name:
+            print("  Fastest that fits:      {} ({:.0f} tok/s)".format(
+                render.paint(fastest.model.name, "green"), fastest.tokens_per_sec))
+    print()
+    return 0
+
+
+def cmd_models(args) -> int:
+    """List or search the catalog."""
+    models = catalog.search(args.query) if args.query else catalog.all_models()
+    if args.json:
+        print(json.dumps([{"name": m.name, "params_b": round(m.params_b, 2),
+                           "family": m.family, "hf_id": m.hf_id,
+                           "context": m.max_context, "tags": list(m.tags)}
+                          for m in models], indent=2))
+        return 0
+    if not models:
+        print("No models match {!r}.".format(args.query))
+        return 1
+    rows = [[m.name, "{:.1f}B".format(m.params_b),
+             "{:.1f}B".format(m.active_params / 1e9) if m.is_moe else "-",
+             m.family, render.fmt_ctx(m.max_context), ", ".join(m.tags)]
+            for m in models]
+    render.table(["Model", "Params", "Active", "Family", "Context", "Tags"], rows,
+                 title="{} models".format(len(models)))
+    return 0
+
+
+def cmd_recommend(args) -> int:
+    """Rank catalog models for this machine."""
+    hw = _hardware_from_args(args)
+    wl = workloads.get(args.workload)
+    recs = compare.recommend(hw, wl, context=args.context, limit=args.limit,
+                             device=args.device, tag=args.tag,
+                             min_tokens_per_sec=args.min_speed)
+    if args.json:
+        print(json.dumps([{**r.estimate.as_dict(), "score": round(r.score, 1),
+                           "reason": r.reason} for r in recs], indent=2))
+        return 0
+    if not recs:
+        print(render.paint("Nothing fits with these settings. Try --context 2048 "
+                           "or a different workload.", "yellow"))
+        return 1
+    render.heading("Best {} models for your machine".format(wl.label.lower()))
+    rows = []
+    for r in recs:
+        e = r.estimate
+        rows.append([e.model.name, "{:.1f}B".format(e.model.params_b), e.quant_name,
+                     "{:.1f} GB".format(e.total_gb),
+                     "{:.0f} tok/s".format(e.tokens_per_sec) if e.tokens_per_sec else "-",
+                     r.reason])
+    render.table(["Model", "Size", "Quant", "Memory", "Speed", "Why"], rows)
+    print()
+    return 0
+
+
+def cmd_context(args) -> int:
+    """Show how context length changes the memory picture."""
+    hw = _hardware_from_args(args)
+    try:
+        model = _resolve_model(args.model, args.hf)
+    except (KeyError, RuntimeError) as exc:
+        print(render.paint("Error: {}".format(exc), "red"), file=sys.stderr)
+        return 2
+    ests = sweep(model, hw, quant_name=args.quant, device=args.device)
+    if args.json:
+        print(json.dumps([e.as_dict() for e in ests], indent=2))
+        return 0
+    render.heading("{} - context length vs memory".format(model.name))
+    rows, colors = [], []
+    for e in ests:
+        rows.append([render.fmt_ctx(e.context),
+                     "{:.1f} GB".format(e.breakdown.weights / (1024 ** 3)),
+                     "{:.1f} GB".format(e.breakdown.kv_cache / (1024 ** 3)),
+                     "{:.1f} GB".format(e.total_gb),
+                     render.bar(e.utilization, 12),
+                     render.verdict_cell(e)])
+        colors.append(render.VERDICT_COLOR[e.verdict])
+    render.table(["Context", "Weights", "KV cache", "Total", "Usage", "Verdict"],
+                 rows, colors=colors)
+    fitting = [e for e in ests if e.fits]
+    if fitting:
+        print()
+        print("  Longest context that fits: {}".format(
+            render.paint(render.fmt_ctx(max(fitting, key=lambda e: e.context).context), "green")))
+    print()
+    return 0
+
+
+def cmd_tui(args) -> int:
+    from .ui.tui import run
+    return run(_hardware_from_args(args))
+
+
+def cmd_app(args) -> int:
+    from .ui.app import serve
+    return serve(host=args.host, port=args.port, open_browser=not args.no_browser)
+
+
+# --- parser ----------------------------------------------------------------
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="llmcalc",
+        description="Work out which AI models your computer can run, fine-tune, or train.",
+        epilog="Run `llmcalc scan` first if you are not sure where to start.",
+    )
+    p.add_argument("--version", action="version", version="llmcalculator {}".format(__version__))
+    sub = p.add_subparsers(dest="command")
+
+    def common(sp, context_default=8192):
+        sp.add_argument("--context", type=_parse_context, default=context_default,
+                        metavar="N", help="context length, e.g. 8192 or 8k")
+        sp.add_argument("--device", choices=["auto", "gpu", "cpu", "all-gpus"], default="auto",
+                        help="which memory budget to size against")
+        sp.add_argument("--vram", type=float, metavar="GB",
+                        help="assume this much VRAM instead of detecting")
+        sp.add_argument("--ram", type=float, metavar="GB",
+                        help="assume this much system RAM instead of detecting")
+        sp.add_argument("--gpu-name", metavar="NAME",
+                        help="GPU model to assume, for speed estimates")
+        sp.add_argument("--json", action="store_true", help="machine-readable output")
+        return sp
+
+    s = common(sub.add_parser("scan", help="detect your hardware and summarise what it can do"))
+    s.set_defaults(func=cmd_scan)
+
+    s = common(sub.add_parser("check", help="check whether one model fits"))
+    s.add_argument("model", help="catalog name, or a Hugging Face repo id")
+    s.add_argument("--workload", "-w", default="inference",
+                   help="inference, qlora, lora, full, or train")
+    s.add_argument("--quant", "-q", help="force a quantization format, e.g. Q4_K_M")
+    s.add_argument("--batch", type=int, default=1, help="batch size")
+    s.add_argument("--kv-quant", default="fp16", help="KV cache precision: fp16, q8_0, q4_0")
+    s.add_argument("--all-workloads", "-a", action="store_true",
+                   help="show inference, fine-tuning and training together")
+    s.add_argument("--hf", action="store_true", help="force a Hugging Face lookup")
+    s.set_defaults(func=cmd_check)
+
+    s = common(sub.add_parser("compare", help="compare several models side by side"))
+    s.add_argument("models", nargs="+", help="two or more model names")
+    s.add_argument("--workload", "-w", default="inference")
+    s.add_argument("--quant", "-q", help="use the same format for every model")
+    s.set_defaults(func=cmd_compare)
+
+    s = common(sub.add_parser("recommend", help="suggest good models for your machine"))
+    s.add_argument("--workload", "-w", default="inference")
+    s.add_argument("--limit", "-n", type=int, default=10)
+    s.add_argument("--tag", help="only models with this tag, e.g. code, reasoning, moe")
+    s.add_argument("--min-speed", type=float, default=0.0, metavar="TOK",
+                   help="drop anything slower than this")
+    s.set_defaults(func=cmd_recommend)
+
+    s = common(sub.add_parser("context", help="show memory across context lengths"))
+    s.add_argument("model")
+    s.add_argument("--quant", "-q")
+    s.add_argument("--hf", action="store_true")
+    s.set_defaults(func=cmd_context)
+
+    s = sub.add_parser("models", help="list or search the model catalog")
+    s.add_argument("query", nargs="?", help="filter by name, family or tag")
+    s.add_argument("--json", action="store_true")
+    s.set_defaults(func=cmd_models)
+
+    s = common(sub.add_parser("tui", help="interactive terminal interface"))
+    s.set_defaults(func=cmd_tui)
+
+    s = sub.add_parser("app", help="open the point-and-click app in your browser")
+    s.add_argument("--port", type=int, default=8770)
+    s.add_argument("--host", default="127.0.0.1")
+    s.add_argument("--no-browser", action="store_true", help="do not open a browser")
+    s.set_defaults(func=cmd_app)
+
+    return p
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if not getattr(args, "command", None):
+        # Bare `llmcalc` should do something useful rather than print usage.
+        args = parser.parse_args(["scan"])
+    try:
+        return args.func(args)
+    except KeyboardInterrupt:
+        print()
+        return 130
+    except (KeyError, RuntimeError, ValueError) as exc:
+        print(render.paint("Error: {}".format(exc), "red"), file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

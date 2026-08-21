@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>llmcalculator</title>
+<style>
+:root {
+  --bg: #f7f8fa; --panel: #ffffff; --panel-2: #f0f2f5; --border: #e2e5ea;
+  --text: #14161a; --muted: #6b7280; --accent: #3b5bdb;
+  --easy: #0f9d58; --ok: #1a73e8; --tight: #e8890c; --no: #d93025;
+  --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.06);
+  --radius: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1013; --panel: #16191e; --panel-2: #1c2026; --border: #272c34;
+    --text: #e6e8ec; --muted: #9aa3ae; --accent: #7c93f5;
+    --easy: #3ecf7a; --ok: #5b9dff; --tight: #f0a340; --no: #ff6b5e;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 20px rgba(0,0,0,.4);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 64px; }
+h1 { font-size: 22px; margin: 0; letter-spacing: -.02em; }
+h2 { font-size: 15px; margin: 30px 0 12px; letter-spacing: -.01em; }
+h3 { font-size: 14px; margin: 0 0 10px; }
+.sub { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
+.card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow);
+}
+header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 999px;
+  padding: 5px 12px; font-size: 12px; color: var(--muted); white-space: nowrap;
+}
+.chip b { color: var(--text); font-weight: 600; }
+.grid { display: grid; gap: 12px; }
+.caps { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.cap-name { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.cap-value { font-size: 26px; font-weight: 650; letter-spacing: -.02em; margin: 6px 0 2px; }
+.cap-note { font-size: 12px; color: var(--muted); }
+.tabs { display: flex; gap: 4px; margin: 28px 0 14px; border-bottom: 1px solid var(--border); }
+.tab {
+  background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer;
+  padding: 9px 14px; font: inherit; font-size: 14px; color: var(--muted); border-radius: 6px 6px 0 0;
+}
+.tab:hover { color: var(--text); background: var(--panel-2); }
+.tab.on { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+input[type=search], select {
+  background: var(--panel); color: var(--text); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 11px; font: inherit; font-size: 14px; outline: none;
+}
+input[type=search] { flex: 1; min-width: 200px; }
+input[type=search]:focus, select:focus { border-color: var(--accent); }
+.layout { display: grid; grid-template-columns: minmax(0,1.05fr) minmax(0,1fr); gap: 16px; align-items: start; }
+@media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+.list { max-height: 620px; overflow-y: auto; padding: 6px; }
+.row {
+  display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center;
+  padding: 9px 11px; border-radius: 9px; cursor: pointer; border: 1px solid transparent;
+}
+.row:hover { background: var(--panel-2); }
+.row.sel { background: var(--panel-2); border-color: var(--accent); }
+.row .nm { font-weight: 550; font-size: 14px; }
+.row .meta { font-size: 12px; color: var(--muted); }
+.badge {
+  font-size: 11px; font-weight: 650; padding: 3px 9px; border-radius: 999px;
+  white-space: nowrap; border: 1px solid currentColor;
+}
+.v-easy { color: var(--easy); } .v-ok { color: var(--ok); }
+.v-tight { color: var(--tight); } .v-no { color: var(--no); }
+.bar { height: 7px; border-radius: 4px; background: var(--panel-2); overflow: hidden; margin: 7px 0; }
+.bar > i { display: block; height: 100%; border-radius: 4px; transition: width .25s ease; }
+.fill-easy { background: var(--easy); } .fill-ok { background: var(--ok); }
+.fill-tight { background: var(--tight); } .fill-no { background: var(--no); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr:last-child td { border-bottom: none; }
+.kv { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; font-size: 13px; }
+.kv span:first-child { color: var(--muted); }
+.kv span:last-child { font-variant-numeric: tabular-nums; font-weight: 550; }
+.verdict-big { font-size: 19px; font-weight: 650; letter-spacing: -.02em; }
+.notes { margin: 14px 0 0; padding: 0; list-style: none; }
+.notes li {
+  font-size: 12.5px; color: var(--muted); padding: 8px 11px; margin-bottom: 6px;
+  background: var(--panel-2); border-radius: 8px; border-left: 3px solid var(--border);
+}
+.notes li.warn { border-left-color: var(--tight); }
+.empty { color: var(--muted); text-align: center; padding: 40px 20px; font-size: 14px; }
+.tag { font-size: 10.5px; background: var(--panel-2); border-radius: 5px; padding: 2px 6px; color: var(--muted); }
+footer { margin-top: 40px; color: var(--muted); font-size: 12px; text-align: center; }
+code { background: var(--panel-2); padding: 2px 6px; border-radius: 5px; font-size: 12px; }
+.hidden { display: none !important; }
+.spin { color: var(--muted); font-size: 13px; padding: 20px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <h1>llmcalculator</h1>
+    <p class="sub" id="sub">Detecting your hardware...</p>
+  </div>
+  <div class="chips" id="chips"></div>
+</header>
+
+<h2>What this machine can do</h2>
+<div class="grid caps" id="caps"></div>
+<ul class="notes" id="hw-notes"></ul>
+
+<div class="tabs">
+  <button class="tab on" data-tab="browse">Browse models</button>
+  <button class="tab" data-tab="best">Best for you</button>
+  <button class="tab" data-tab="compare">Compare</button>
+</div>
+
+<div class="controls">
+  <input type="search" id="q" placeholder="Search by name, family or tag (llama, code, moe)...">
+  <select id="workload"></select>
+  <select id="context">
+    <option value="2048">2k context</option>
+    <option value="4096">4k context</option>
+    <option value="8192" selected>8k context</option>
+    <option value="16384">16k context</option>
+    <option value="32768">32k context</option>
+    <option value="131072">128k context</option>
+  </select>
+</div>
+
+<section id="tab-browse">
+  <div class="layout">
+    <div class="card list" id="list"><div class="spin">Loading...</div></div>
+    <div class="card" id="detail"><div class="empty">Select a model to see the details.</div></div>
+  </div>
+</section>
+
+<section id="tab-best" class="hidden">
+  <div class="card" id="best"><div class="spin">Loading...</div></div>
+</section>
+
+<section id="tab-compare" class="hidden">
+  <div class="card">
+    <h3>Pick models to compare</h3>
+    <div id="cmp-picker" class="chips" style="margin-bottom:14px"></div>
+    <div id="cmp-out"><div class="empty">Choose two or more models above.</div></div>
+  </div>
+</section>
+
+<footer>
+  Estimates are calculated from each model's real architecture. Actual usage varies
+  a few percent by runtime. &nbsp;&middot;&nbsp; <code>llmcalc --help</code> for the CLI.
+</footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const api = async (p, params={}) => {
+  const u = new URL(p, location.origin);
+  Object.entries(params).forEach(([k,v]) => v !== '' && v != null && u.searchParams.set(k,v));
+  const r = await fetch(u);
+  return r.json();
+};
+const gb = n => (n == null ? '-' : n.toFixed(1) + ' GB');
+const ctxLabel = n => n >= 1024 && n % 1024 === 0 ? (n/1024) + 'k' : String(n);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+let STATE = { models: [], selected: null, compare: new Set(), workload: 'inference', context: 8192 };
+
+// ---- hardware ------------------------------------------------------------
+async function loadHardware() {
+  const hw = await api('/api/hardware');
+  const gpu = hw.gpus[0];
+  $('#sub').textContent = gpu
+    ? `${hw.cpu.name} - ${gpu.name}, ${gpu.memory_gb} GB${gpu.unified ? ' unified' : ''}`
+    : `${hw.cpu.name} - no GPU detected, CPU only`;
+
+  $('#chips').innerHTML = [
+    `<span class="chip">RAM <b>${hw.ram_gb} GB</b></span>`,
+    gpu ? `<span class="chip">GPU memory <b>${gpu.memory_gb} GB</b></span>` : '',
+    gpu && gpu.bandwidth_gbs ? `<span class="chip">Bandwidth <b>${gpu.bandwidth_gbs} GB/s</b></span>` : '',
+    `<span class="chip">Usable budget <b>${hw.budget_gb} GB</b></span>`,
+    `<span class="chip">Disk free <b>${Math.round(hw.disk_free_gb)} GB</b></span>`,
+  ].filter(Boolean).join('');
+
+  $('#caps').innerHTML = hw.capabilities.map(c => `
+    <div class="card">
+      <div class="cap-name">${esc(c.label)}</div>
+      <div class="cap-value">${c.max_params_b >= 1 ? '~' + c.max_params_b + 'B' : 'too small'}</div>
+      <div class="cap-note">${c.largest ? 'largest that fits: ' + esc(c.largest) : 'nothing in the catalog fits'}</div>
+    </div>`).join('');
+
+  $('#hw-notes').innerHTML = (hw.notes || []).map(n => `<li>${esc(n)}</li>`).join('');
+
+  const sel = $('#workload');
+  sel.innerHTML = hw.capabilities.map(c =>
+    `<option value="${c.key}">${esc(c.label)}</option>`).join('');
+}
+
+// ---- model list ----------------------------------------------------------
+async function loadModels() {
+  const data = await api('/api/models', {
+    q: $('#q').value, workload: STATE.workload, context: STATE.context });
+  STATE.models = data.models;
+  const list = $('#list');
+  if (!data.models.length) {
+    list.innerHTML = '<div class="empty">No models match that search.</div>';
+    return;
+  }
+  list.innerHTML = data.models.map(m => `
+    <div class="row ${STATE.selected === m.name ? 'sel' : ''}" data-name="${esc(m.name)}">
+      <div>
+        <div class="nm">${esc(m.name)}</div>
+        <div class="meta">${m.params_b}B${m.active_b ? ` (${m.active_b}B active)` : ''}
+          &middot; ${esc(m.quant)} &middot; ${gb(m.gb)}${m.tokens_per_sec ? ' &middot; ' + m.tokens_per_sec + ' tok/s' : ''}</div>
+      </div>
+      <div class="badge v-${m.verdict}">${esc(m.label)}</div>
+    </div>`).join('');
+  list.querySelectorAll('.row').forEach(el =>
+    el.onclick = () => selectModel(el.dataset.name));
+  if (!STATE.selected && data.models.length) selectModel(data.models[0].name);
+}
+
+async function selectModel(name) {
+  STATE.selected = name;
+  document.querySelectorAll('#list .row').forEach(r =>
+    r.classList.toggle('sel', r.dataset.name === name));
+  const d = await api('/api/detail', {
+    name, workload: STATE.workload, context: STATE.context });
+  if (d.error) { $('#detail').innerHTML = `<div class="empty">${esc(d.error)}</div>`; return; }
+  renderDetail(d);
+}
+
+function renderDetail(d) {
+  const pct = Math.min(d.utilization, 1.4) / 1.4 * 100;
+  $('#detail').innerHTML = `
+    <h3>${esc(d.model)}</h3>
+    <p class="sub">${esc(d.describe)}${d.hf_id ? ' &middot; ' + esc(d.hf_id) : ''}</p>
+
+    <div style="margin:16px 0 4px" class="verdict-big v-${d.verdict}">${esc(d.label)}</div>
+    <div class="bar"><i class="fill-${d.verdict}" style="width:${pct}%"></i></div>
+    <div class="kv"><span>Needs / available</span>
+      <span>${gb(d.required_gb)} of ${gb(d.budget_gb)} (${Math.round(d.utilization*100)}%)</span></div>
+    <div class="kv"><span>Precision</span><span>${esc(d.quant)}</span></div>
+    <div class="kv"><span>Context</span><span>${ctxLabel(d.context)} tokens</span></div>
+    ${d.tokens_per_sec ? `<div class="kv"><span>Generation speed</span><span>~${d.tokens_per_sec} tok/s</span></div>` : ''}
+    ${d.disk_gb ? `<div class="kv"><span>Download size</span><span>${gb(d.disk_gb)}</span></div>` : ''}
+
+    <h3 style="margin-top:20px">Where the memory goes</h3>
+    <table><tbody>${d.breakdown.map(b => `
+      <tr><td>${esc(b.label)}</td><td class="num">${b.gb.toFixed(2)} GB</td>
+      <td style="width:45%"><div class="bar" style="margin:0">
+        <i class="fill-ok" style="width:${b.gb / d.required_gb * 100}%"></i></div></td></tr>`).join('')}
+    </tbody></table>
+
+    <h3 style="margin-top:20px">Every workload</h3>
+    <table><thead><tr><th>Task</th><th>Base</th><th class="num">Needs</th><th>Verdict</th></tr></thead>
+    <tbody>${d.workloads.map(w => `<tr>
+      <td>${esc(w.label)}</td><td>${esc(w.quant)}</td><td class="num">${w.gb} GB</td>
+      <td><span class="badge v-${w.verdict}">${esc(w.label_text)}</span></td></tr>`).join('')}
+    </tbody></table>
+
+    ${d.quants.length > 1 ? `
+    <h3 style="margin-top:20px">Quantization options</h3>
+    <table><thead><tr><th>Format</th><th class="num">Memory</th><th class="num">Speed</th>
+      <th class="num">Quality</th><th>Verdict</th></tr></thead>
+    <tbody>${d.quants.map(q => `<tr>
+      <td>${esc(q.name)}</td><td class="num">${q.gb} GB</td>
+      <td class="num">${q.tokens_per_sec || '-'}</td><td class="num">${q.quality}%</td>
+      <td><span class="badge v-${q.verdict}">${q.verdict === 'no' ? 'No' : 'Yes'}</span></td></tr>`).join('')}
+    </tbody></table>` : ''}
+
+    ${d.contexts.length > 1 ? `
+    <h3 style="margin-top:20px">Context length cost</h3>
+    <table><thead><tr><th>Context</th><th class="num">KV cache</th><th class="num">Total</th><th>Verdict</th></tr></thead>
+    <tbody>${d.contexts.map(c => `<tr>
+      <td>${ctxLabel(c.context)}</td><td class="num">${c.kv_gb} GB</td><td class="num">${c.gb} GB</td>
+      <td><span class="badge v-${c.verdict}">${c.verdict === 'no' ? 'No' : 'Yes'}</span></td></tr>`).join('')}
+    </tbody></table>` : ''}
+
+    ${d.notes.length ? `<ul class="notes">${d.notes.map(n =>
+      `<li class="${d.fits ? '' : 'warn'}">${esc(n)}</li>`).join('')}</ul>` : ''}
+  `;
+}
+
+// ---- recommendations -----------------------------------------------------
+async function loadBest() {
+  const d = await api('/api/recommend', {
+    workload: STATE.workload, context: STATE.context, limit: 10 });
+  const r = d.recommendations || [];
+  $('#best').innerHTML = r.length ? `
+    <h3>Best picks for your machine</h3>
+    <p class="sub">Ranked by capability, quality retained, and speed — not size alone.</p>
+    <table style="margin-top:12px"><thead><tr>
+      <th>Model</th><th class="num">Size</th><th>Precision</th>
+      <th class="num">Memory</th><th class="num">Speed</th><th>Why</th></tr></thead>
+    <tbody>${r.map(x => `<tr>
+      <td><b>${esc(x.name)}</b></td><td class="num">${x.params_b}B</td><td>${esc(x.quant)}</td>
+      <td class="num">${x.gb} GB</td><td class="num">${x.tokens_per_sec || '-'}</td>
+      <td style="color:var(--muted)">${esc(x.reason)}</td></tr>`).join('')}
+    </tbody></table>`
+    : '<div class="empty">Nothing fits with these settings. Try a shorter context.</div>';
+}
+
+// ---- compare -------------------------------------------------------------
+function renderPicker() {
+  $('#cmp-picker').innerHTML = STATE.models.slice(0, 40).map(m => `
+    <span class="chip" data-name="${esc(m.name)}"
+      style="cursor:pointer;${STATE.compare.has(m.name)
+        ? 'border-color:var(--accent);color:var(--accent)' : ''}">${esc(m.name)}</span>`).join('');
+  $('#cmp-picker').querySelectorAll('.chip').forEach(c => c.onclick = () => {
+    const n = c.dataset.name;
+    STATE.compare.has(n) ? STATE.compare.delete(n) : STATE.compare.add(n);
+    renderPicker(); loadCompare();
+  });
+}
+
+async function loadCompare() {
+  if (STATE.compare.size < 2) {
+    $('#cmp-out').innerHTML = '<div class="empty">Choose two or more models above.</div>';
+    return;
+  }
+  const d = await api('/api/compare', {
+    names: [...STATE.compare].join(','), workload: STATE.workload, context: STATE.context });
+  const rows = d.results || [];
+  $('#cmp-out').innerHTML = `
+    <table><thead><tr><th>Model</th><th class="num">Size</th><th>Precision</th>
+      <th class="num">Memory</th><th class="num">Used</th><th class="num">Speed</th><th>Verdict</th></tr></thead>
+    <tbody>${rows.map(x => `<tr>
+      <td><b>${esc(x.name)}</b></td><td class="num">${x.params_b}B</td><td>${esc(x.quant)}</td>
+      <td class="num">${x.gb} GB</td><td class="num">${Math.round(x.utilization*100)}%</td>
+      <td class="num">${x.tokens_per_sec || '-'}</td>
+      <td><span class="badge v-${x.verdict}">${esc(x.label)}</span></td></tr>`).join('')}
+    </tbody></table>`;
+}
+
+// ---- wiring --------------------------------------------------------------
+let timer;
+$('#q').oninput = () => { clearTimeout(timer); timer = setTimeout(() => {
+  STATE.selected = null; loadModels().then(renderPicker); }, 180); };
+
+$('#workload').onchange = e => { STATE.workload = e.target.value; refresh(); };
+$('#context').onchange = e => { STATE.context = +e.target.value; refresh(); };
+
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
+  ['browse','best','compare'].forEach(n =>
+    $('#tab-' + n).classList.toggle('hidden', n !== t.dataset.tab));
+  if (t.dataset.tab === 'best') loadBest();
+  if (t.dataset.tab === 'compare') { renderPicker(); loadCompare(); }
+});
+
+async function refresh() {
+  await loadModels();
+  if (STATE.selected) await selectModel(STATE.selected);
+  if (!$('#tab-best').classList.contains('hidden')) loadBest();
+  if (!$('#tab-compare').classList.contains('hidden')) { renderPicker(); loadCompare(); }
+}
+
+(async function init() {
+  await loadHardware();
+  await loadModels();
+})();
+</script>
+</body>
+</html>
