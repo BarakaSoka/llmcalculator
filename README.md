@@ -9,7 +9,7 @@ models can differ by 8x in KV cache at long context, which is usually what
 decides whether something fits.
 
 ```
-$ llmcalc scan
+$ llmcalculator scan
 
 Your machine
   CPU        Apple M3 Pro (12 cores / 12 threads)
@@ -48,31 +48,31 @@ your browser.
 ### 1. Command line
 
 ```bash
-llmcalc scan                          # what can this machine do?
-llmcalc check llama3.1:8b             # will this one model fit?
-llmcalc check qwen2.5:7b -a           # ...across every workload
-llmcalc compare llama3.1:8b qwen2.5:32b gpt-oss:20b
-llmcalc recommend --tag code          # good coding models for this machine
-llmcalc context llama3.1:8b           # how much does long context cost?
-llmcalc models qwen                   # search the catalog
+llmcalculator scan                          # what can this machine do?
+llmcalculator check llama3.1:8b             # will this one model fit?
+llmcalculator check qwen2.5:7b -a           # ...across every workload
+llmcalculator compare llama3.1:8b qwen2.5:32b gpt-oss:20b
+llmcalculator recommend --tag code          # good coding models for this machine
+llmcalculator context llama3.1:8b           # how much does long context cost?
+llmcalculator models qwen                   # search the catalog
 ```
 
 Any model on Hugging Face works, not just the built-in catalog:
 
 ```bash
-llmcalc check mistralai/Mistral-Small-24B-Instruct-2501
+llmcalculator check mistralai/Mistral-Small-24B-Instruct-2501
 ```
 
 Planning a machine you do not own yet:
 
 ```bash
-llmcalc recommend --vram 24 --ram 64 --gpu-name "RTX 4090"
+llmcalculator recommend --vram 24 --ram 64 --gpu-name "RTX 4090"
 ```
 
 ### 2. Terminal UI
 
 ```bash
-llmcalc tui
+llmcalculator tui
 ```
 
 Browse the catalog with live verdicts. `w` cycles workload, `c` cycles context,
@@ -81,7 +81,7 @@ Browse the catalog with live verdicts. `w` cycles workload, `c` cycles context,
 ### 3. Browser app
 
 ```bash
-llmcalc app
+llmcalculator app
 ```
 
 Opens a local page at `127.0.0.1:8770`. Nothing is uploaded and nothing is
@@ -93,7 +93,7 @@ For every model and workload it reports **where the memory goes**, which is the
 part that lets you fix a bad fit rather than just learn about it:
 
 ```
-$ llmcalc check llama3.1:8b
+$ llmcalculator check llama3.1:8b
 
 llama3.1:8b  -  Inference
   8.0B params, 32 layers, GQA 4:1, 128k ctx
@@ -147,7 +147,7 @@ lc.check("llama3.1:70b", hardware=lc.manual(vram_gb=48, ram_gb=128))
 Every command also takes `--json`, so it composes with other tooling:
 
 ```bash
-llmcalc scan --json | jq '.capabilities.qlora.max_params_b'
+llmcalculator scan --json | jq '.capabilities.qlora.max_params_b'
 ```
 
 ## How the numbers are worked out
@@ -175,11 +175,11 @@ in allocator behaviour and buffer sizing.
 
 Yes for speed, no for possibility. Ollama, llama.cpp and this tool all work on
 CPU-only machines — roughly 3-10x slower than a GPU of the same memory size.
-`llmcalc scan --device cpu` sizes against system RAM instead of VRAM.
+`llmcalculator scan --device cpu` sizes against system RAM instead of VRAM.
 
 On Apple Silicon there is no separate VRAM: CPU and GPU share one pool, and
 macOS caps the GPU's share (about 75% of RAM, or RAM minus 8 GB above 36 GB).
-`llmcalc` reads that limit rather than assuming it.
+`llmcalculator` reads that limit rather than assuming it.
 
 ## Development
 

@@ -60,7 +60,7 @@ def get(name: str) -> ModelSpec:
     if len(matches) > 1:
         names = ", ".join(sorted(m.name for m in matches))
         raise KeyError("{!r} is ambiguous. Did you mean: {}".format(name, names))
-    raise KeyError("Unknown model {!r}. Try `llmcalc models` to list, or pass --hf <repo-id>.".format(name))
+    raise KeyError("Unknown model {!r}. Try `llmcalculator models` to list, or pass --hf <repo-id>.".format(name))
 
 
 def search(query: str) -> List[ModelSpec]:

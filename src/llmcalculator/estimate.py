@@ -272,6 +272,13 @@ def _add_notes(est: Estimate, hw: HardwareProfile, fmt: quant.QuantFormat,
         est.notes.append("Not enough free disk: needs {:.0f} GB, {:.0f} GB available.".format(
             est.disk_gb, hw.disk_free_gb))
 
+    if est.fits and not est.tokens_per_sec and wl.key == "inference":
+        accel = hw.primary
+        name = accel.name if accel else "this device"
+        est.notes.append(
+            "Speed is not estimated: memory bandwidth for {} is not in the "
+            "database. Pass --gpu-name to compare against a known GPU.".format(name))
+
     if fmt.quality < 0.95:
         est.notes.append("{} loses noticeable quality; prefer a smaller model at "
                          "higher precision if you can.".format(fmt.name))
@@ -383,8 +390,16 @@ def _note_higher_precision(est: Estimate, model: ModelSpec, hardware: HardwarePr
     for fmt in ladder[:idx]:  # highest quality first
         higher = estimate(model, hardware, workload, fmt.name, **kw)
         if higher.fits:
-            est.notes.append(
-                "You have room for {} ({:.1f} GB) if you want maximum quality, at "
-                "about {:.0f} tok/s instead of {:.0f}.".format(
-                    fmt.name, higher.total_gb, higher.tokens_per_sec, est.tokens_per_sec))
+            # Speed is unknown for unrecognised GPUs; do not dress a pair of
+            # zeroes up as a tradeoff.
+            if est.tokens_per_sec and higher.tokens_per_sec:
+                est.notes.append(
+                    "You have room for {} ({:.1f} GB) if you want maximum quality, at "
+                    "about {:.0f} tok/s instead of {:.0f}.".format(
+                        fmt.name, higher.total_gb, higher.tokens_per_sec,
+                        est.tokens_per_sec))
+            else:
+                est.notes.append(
+                    "You have room for {} ({:.1f} GB) if you want maximum quality, "
+                    "at the cost of some speed.".format(fmt.name, higher.total_gb))
             return

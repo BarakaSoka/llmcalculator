@@ -33,7 +33,9 @@ all = ["rich>=13.0", "textual>=0.60"]
 dev = ["rich>=13.0", "textual>=0.60", "pytest>=7.0", "build", "twine"]
 
 [project.scripts]
-llmcalc = "llmcalculator.cli:main"
+# Deliberately no short `llmcalc` alias: an unrelated PyPI package of that
+# name already ships a console script called `llmcalc`, and installing both
+# would leave whichever landed last owning the command.
 llmcalculator = "llmcalculator.cli:main"
 
 [project.urls]

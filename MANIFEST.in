@@ -1,0 +1,18 @@
+# The wheel gets package data via [tool.setuptools.package-data]. This file
+# governs the sdist, which should additionally carry everything needed to
+# verify and rebuild the project from source.
+include LICENSE
+include README.md
+include CHANGELOG.md
+include CONTRIBUTING.md
+include MANIFEST.in
+
+recursive-include src/llmcalculator/models *.json
+recursive-include src/llmcalculator/ui *.html
+recursive-include tests *.py
+recursive-include launchers *.py *.sh *.bat *.command
+recursive-include .github *.yml *.md
+
+global-exclude __pycache__/*
+global-exclude *.py[cod]
+global-exclude .DS_Store

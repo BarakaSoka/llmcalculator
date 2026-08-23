@@ -195,3 +195,23 @@ def test_context_is_clamped_to_model_maximum(mac36):
     m = catalog.get("gemma2:9b")  # 8k limit
     e = estimate(m, mac36, context=131072)
     assert e.context == m.max_context
+
+
+def test_unknown_gpu_does_not_fabricate_a_speed_tradeoff():
+    """An unrecognised GPU has no bandwidth figure, so speed is unknown. The
+    advice must not render that as '0 tok/s instead of 0'."""
+    from llmcalculator.hardware import manual
+    hw = manual(vram_gb=24, ram_gb=64, gpu_name="Some Unreleased GPU")
+    e = recommended_quant(catalog.get("llama3.1:8b"), hw)
+    assert e.tokens_per_sec == 0
+    assert not any("0 tok/s" in n for n in e.notes)
+    assert any("some speed" in n for n in e.notes)
+    assert any("not in the database" in n for n in e.notes)
+
+
+def test_known_gpu_still_reports_the_speed_tradeoff():
+    from llmcalculator.hardware import manual
+    hw = manual(vram_gb=24, ram_gb=64, gpu_name="RTX 4090")
+    e = recommended_quant(catalog.get("llama3.1:8b"), hw)
+    assert e.tokens_per_sec > 0
+    assert any("tok/s instead of" in n for n in e.notes)

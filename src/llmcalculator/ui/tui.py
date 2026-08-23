@@ -19,7 +19,7 @@ _MISSING = """The TUI needs the `textual` package.
 
     pip install "llmcalculator[tui]"
 
-Everything else works without it - try `llmcalc scan` or `llmcalc app`."""
+Everything else works without it - try `llmcalculator scan` or `llmcalculator app`."""
 
 
 def run(hardware: Optional[HardwareProfile] = None) -> int:

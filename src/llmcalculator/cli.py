@@ -98,7 +98,7 @@ def cmd_scan(args) -> int:
         print(render.paint("  Note: " + note, "dim"))
 
     print()
-    print(render.paint("  Next: llmcalc check <model>   or   llmcalc compare a b c", "dim"))
+    print(render.paint("  Next: llmcalculator check <model>   or   llmcalculator compare a b c", "dim"))
     return 0
 
 
@@ -335,9 +335,9 @@ def cmd_app(args) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="llmcalc",
+        prog="llmcalculator",
         description="Work out which AI models your computer can run, fine-tune, or train.",
-        epilog="Run `llmcalc scan` first if you are not sure where to start.",
+        epilog="Run `llmcalculator scan` first if you are not sure where to start.",
     )
     p.add_argument("--version", action="version", version="llmcalculator {}".format(__version__))
     sub = p.add_subparsers(dest="command")
