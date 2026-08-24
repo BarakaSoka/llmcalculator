@@ -1,3 +1,4 @@
+# Python
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -7,3 +8,15 @@ dist/
 venv/
 .pytest_cache/
 .DS_Store
+
+# Credentials — none of these belong in the repository. This project needs no
+# API key at runtime; tokens exist only to upload releases, and they live in
+# the OS keyring or the home directory, never here. Listed defensively because
+# this repository is public and a committed token is scraped within minutes.
+.pypirc
+.env
+.env.*
+*.pem
+*.key
+secrets.*
+credentials.*
