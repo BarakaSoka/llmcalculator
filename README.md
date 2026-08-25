@@ -1,7 +1,7 @@
 # llmcalculator
 
-Work out which AI models your computer can actually run — for inference,
-fine-tuning, and training — before you spend an hour downloading one.
+Work out which AI models your computer/machine can actually run — for inference,
+fine-tuning, and training — before using it.
 
 It reads your real hardware, then sizes each model from its **actual
 architecture** rather than a rule of thumb. That distinction matters: two 7B
