@@ -94,3 +94,21 @@ jobs:
         with:
           name: dist
           path: dist/
+
+  all-checks:
+    # A single stable gate for branch protection. Requiring the matrix jobs
+    # directly would mean editing the protection rule every time the Python or
+    # OS list changes; this job's name never changes.
+    name: All checks passed
+    if: always()
+    needs: [test, no-dependencies, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if anything upstream failed
+        run: |
+          if [ "${{ contains(needs.*.result, 'failure') }}" = "true" ] || \
+             [ "${{ contains(needs.*.result, 'cancelled') }}" = "true" ]; then
+            echo "One or more required jobs did not pass."
+            exit 1
+          fi
+          echo "All required jobs passed."

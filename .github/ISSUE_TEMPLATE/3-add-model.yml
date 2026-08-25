@@ -1,0 +1,40 @@
+name: Add a model to the catalog
+description: Request a model be bundled in the built-in catalog
+labels: ["catalog"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **You may not need this.** Any model on the Hub already works:
+
+        ```
+        llmcalculator check Qwen/Qwen3-8B
+        llmcalculator search qwen
+        ```
+
+        The catalog exists so common models work offline and appear in
+        `recommend`. Worth adding if the model is widely run locally.
+  - type: input
+    id: repo
+    attributes:
+      label: Hugging Face repo id
+      placeholder: Qwen/Qwen3-8B
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why this one
+      description: Roughly how widely is it actually run locally?
+  - type: textarea
+    id: check
+    attributes:
+      label: What `llmcalculator check <repo-id>` currently reports
+      render: shell
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirm
+      options:
+        - label: The size it reports matches the published parameter count
+        - label: It is not a Mamba/RWKV/hybrid model (those are deliberately unsupported)

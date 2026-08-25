@@ -1,0 +1,56 @@
+name: Bug report
+description: Something crashed or behaved wrongly
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: The exact command, please
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: traceback
+    attributes:
+      label: Full error or traceback
+      render: python
+  - type: input
+    id: version
+    attributes:
+      label: llmcalculator version
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: "3.11.6"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [Linux, macOS, Windows, WSL, other]
+    validations:
+      required: true
+  - type: dropdown
+    id: interface
+    attributes:
+      label: Which interface
+      options: [CLI, TUI, web app, Python API]
+    validations:
+      required: true

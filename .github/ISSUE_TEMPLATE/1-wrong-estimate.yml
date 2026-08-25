@@ -1,0 +1,52 @@
+name: Wrong estimate
+description: It said something fits when it does not, or the reverse
+labels: ["estimate", "bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the most valuable kind of report. A wrong number is worse than
+        no number, because people act on it.
+  - type: textarea
+    id: said
+    attributes:
+      label: What the tool said
+      render: shell
+      placeholder: |
+        $ llmcalculator check qwen2.5:32b
+        ...
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What actually happened
+      description: e.g. "ran out of memory at 21 GB", or "fit fine with 4 GB to spare"
+    validations:
+      required: true
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: Runtime
+      options: [Ollama, llama.cpp, LM Studio, vLLM, transformers, MLX, other]
+    validations:
+      required: true
+  - type: input
+    id: runtime-version
+    attributes:
+      label: Runtime version
+  - type: textarea
+    id: hardware
+    attributes:
+      label: Your hardware
+      description: Output of `llmcalculator scan --json`
+      render: json
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: llmcalculator version
+      description: Output of `llmcalculator --version`
+    validations:
+      required: true

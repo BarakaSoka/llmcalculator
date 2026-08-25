@@ -1,0 +1,18 @@
+# Code owners are requested for review automatically on every pull request,
+# and branch protection requires their approval before main can be updated.
+#
+# Syntax: https://docs.github.com/articles/about-code-owners
+
+# Default owner for everything in the repository.
+*                                   @BarakaSoka
+
+# The sizing maths is the part where a wrong number is worse than no number,
+# because people act on it. Changes here always need an owner's eyes.
+/src/llmcalculator/estimate.py      @BarakaSoka
+/src/llmcalculator/quant.py         @BarakaSoka
+/src/llmcalculator/workloads.py     @BarakaSoka
+/src/llmcalculator/models/spec.py   @BarakaSoka
+
+# Release and CI plumbing: a mistake here can publish a broken package.
+/.github/workflows/                 @BarakaSoka
+/pyproject.toml                     @BarakaSoka

@@ -1,0 +1,32 @@
+name: Hardware not detected
+description: Your GPU was missed, or reported with the wrong memory or speed
+labels: ["hardware"]
+body:
+  - type: textarea
+    id: detected
+    attributes:
+      label: What was detected
+      description: Output of `llmcalculator scan --json`
+      render: json
+    validations:
+      required: true
+  - type: input
+    id: actual
+    attributes:
+      label: What you actually have
+      placeholder: "RTX 4070 Ti Super, 16 GB"
+    validations:
+      required: true
+  - type: textarea
+    id: vendor
+    attributes:
+      label: Vendor tool output
+      description: "`nvidia-smi --query-gpu=name,memory.total,compute_cap --format=csv`, `rocm-smi`, or equivalent"
+      render: shell
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [Linux, macOS, Windows, WSL, other]
+    validations:
+      required: true
