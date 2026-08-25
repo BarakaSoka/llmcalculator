@@ -225,6 +225,22 @@ On Apple Silicon there is no separate VRAM: CPU and GPU share one pool, and
 macOS caps the GPU's share (about 75% of RAM, or RAM minus 8 GB above 36 GB).
 `llmcalculator` reads that limit rather than assuming it.
 
+## Contributing
+
+`main` is protected: everything lands through a pull request that has passed CI
+on Linux, macOS and Windows and been approved by a code owner.
+
+The most valuable contribution is **reporting a wrong estimate** — if the tool
+said a model fits and it did not, that is a real bug with real cost. There is an
+issue template for it.
+
+- [CONTRIBUTING.md](CONTRIBUTING.md) — workflow, how to add a model or a GPU,
+  and the rules around changing the estimator
+- [SECURITY.md](SECURITY.md) — report privately, never in a public issue
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- [Discussions](https://github.com/BarakaSoka/llmcalculator/discussions) — ask
+  before building something large
+
 ## Development
 
 ```bash
