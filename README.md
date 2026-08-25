@@ -99,9 +99,21 @@ llmcalculator recommend --vram 24 --ram 64 --gpu-name "RTX 4090"
 llmcalculator tui
 ```
 
-Browse the catalog with live verdicts. `w` cycles workload, `c` cycles context,
-`/` searches, `r` filters to models worth running here, and `h` searches all of
-Hugging Face for whatever is in the filter box.
+Browse the catalog with live verdicts.
+
+| Key | Does |
+|---|---|
+| `up` / `down` | move through the list — **works while you are typing a filter** |
+| `j` / `k` | same, vim-style |
+| `g` / `G` | jump to the top / bottom |
+| `page up` / `page down`, `home` / `end` | move faster |
+| `/` | jump to the filter box |
+| `enter` / `escape` | leave the filter box, keeping the filter |
+| `w` / `c` | cycle workload / context |
+| `r` | show only models worth running here |
+| `h` | search all of Hugging Face for the current filter text |
+| `a` | back to the full catalog |
+| `q` | quit |
 
 ### 3. Browser app
 
@@ -219,7 +231,7 @@ macOS caps the GPU's share (about 75% of RAM, or RAM minus 8 GB above 36 GB).
 git clone https://github.com/llmcalculator/llmcalculator
 cd llmcalculator
 pip install -e ".[dev]"
-pytest              # 93 tests
+pytest              # 105 tests
 ```
 
 Adding a model means one entry in `src/llmcalculator/models/catalog.json`.

@@ -166,7 +166,22 @@ if _HAS_TEXTUAL:
             Binding("r", "show_recommended", "Recommended"),
             Binding("a", "show_all", "All models"),
             Binding("h", "search_hub", "Hugging Face"),
+            # Vim-style movement. These are letters, so the search Input
+            # consumes them while you are typing and they only act on the list.
+            Binding("j", "move(1)", "Down", show=False),
+            Binding("k", "move(-1)", "Up", show=False),
+            Binding("g", "move_to_start", "Top", show=False),
+            Binding("G", "move_to_end", "Bottom", show=False),
+            Binding("escape", "leave_search", "Back to list", show=False),
         ]
+
+        # Keys that should always drive the model list, even while the cursor
+        # is in the search box. Typing a filter and pressing Down to walk the
+        # results is the single most common thing to want here.
+        NAV_KEYS = {
+            "down": 1, "up": -1,
+            "pagedown": 10, "pageup": -10,
+        }
 
         CONTEXTS = [2048, 4096, 8192, 16384, 32768, 131072]
 
@@ -189,7 +204,8 @@ if _HAS_TEXTUAL:
                              value="inference", id="workload", allow_blank=False)
                 yield Select([(_fmt_ctx(c) + " context", c) for c in self.CONTEXTS],
                              value=8192, id="context", allow_blank=False)
-                yield Input(placeholder="Filter models (name, family or tag)...", id="search")
+                yield Input(placeholder="Filter models... (arrows still move the list while you type)",
+                            id="search")
             with Horizontal(id="main"):
                 with Vertical(id="sidebar"):
                     yield HardwarePanel(self.hw)
@@ -261,6 +277,55 @@ if _HAS_TEXTUAL:
             self._refresh_models()
 
         # --- actions ------------------------------------------------------
+
+        def on_key(self, event) -> None:
+            """Send navigation keys to the list wherever focus happens to be."""
+            focused = self.focused
+            if focused is None or focused.id != "search":
+                return  # the table already handles these itself
+
+            if event.key in self.NAV_KEYS:
+                self._move(self.NAV_KEYS[event.key])
+                event.stop()
+                event.prevent_default()
+            elif event.key == "home":
+                self._move_to(0); event.stop(); event.prevent_default()
+            elif event.key == "end":
+                self._move_to(-1); event.stop(); event.prevent_default()
+            elif event.key == "enter":
+                # Commit the filter and hand control to the list.
+                self.query_one("#models", DataTable).focus()
+                event.stop(); event.prevent_default()
+
+        # --- list movement ------------------------------------------------
+
+        def _move(self, delta: int) -> None:
+            table = self.query_one("#models", DataTable)
+            if not table.row_count:
+                return
+            row = max(0, min(table.cursor_row + delta, table.row_count - 1))
+            table.move_cursor(row=row, animate=False)
+
+        def _move_to(self, row: int) -> None:
+            table = self.query_one("#models", DataTable)
+            if not table.row_count:
+                return
+            if row < 0:
+                row = table.row_count - 1
+            table.move_cursor(row=max(0, min(row, table.row_count - 1)), animate=False)
+
+        def action_move(self, delta: int) -> None:
+            self._move(delta)
+
+        def action_move_to_start(self) -> None:
+            self._move_to(0)
+
+        def action_move_to_end(self) -> None:
+            self._move_to(-1)
+
+        def action_leave_search(self) -> None:
+            """Escape returns focus to the list without losing the filter."""
+            self.query_one("#models", DataTable).focus()
 
         def action_focus_search(self) -> None:
             self.query_one("#search", Input).focus()

@@ -6,6 +6,20 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-08-25
+
+### Added
+
+- **Model list navigation in the TUI.** Up and down now move through the list
+  even while the cursor is in the filter box, which is the common case: you
+  type a few characters to narrow the list, then want to walk the results
+  without tabbing back to the table first. Focus stays where you left it.
+- `j` / `k` for vim-style movement, `g` / `G` to jump to either end, and
+  `page up` / `page down` / `home` / `end` for larger steps.
+- `enter` or `escape` leaves the filter box for the list, keeping the filter.
+- 12 tests covering navigation, including bounds and the empty-list case.
+
+
 ## [0.2.0] - 2026-08-25
 
 ### Added
@@ -70,6 +84,7 @@ First release.
   console script called `llmcalc`, and installing both would leave whichever
   landed last owning the command.
 
-[Unreleased]: https://github.com/BarakaSoka/llmcalculator/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/BarakaSoka/llmcalculator/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/BarakaSoka/llmcalculator/releases/tag/v0.2.1
 [0.2.0]: https://github.com/BarakaSoka/llmcalculator/releases/tag/v0.2.0
 [0.1.0]: https://github.com/BarakaSoka/llmcalculator/releases/tag/v0.1.0
