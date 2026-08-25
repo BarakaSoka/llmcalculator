@@ -6,6 +6,24 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-08-25
+
+No functional change. This release exists to exercise the release workflow on
+its updated GitHub Actions.
+
+### Changed
+
+- CI and release workflows moved to `actions/checkout@v7`,
+  `actions/setup-python@v7`, `actions/upload-artifact@v7` and
+  `actions/download-artifact@v8` (#1, #2, #3, #4).
+
+  `download-artifact@v8` is a breaking release: digest mismatches now fail the
+  run rather than logging a warning, and non-zipped downloads are no longer
+  unzipped blindly. Both are improvements for a workflow that publishes to
+  PyPI. The upload and download actions were updated together, since they
+  have to agree on the artifact format.
+
+
 ## [0.2.2] - 2026-08-25
 
 ### Fixed
@@ -106,7 +124,8 @@ First release.
   console script called `llmcalc`, and installing both would leave whichever
   landed last owning the command.
 
-[Unreleased]: https://github.com/BarakaSoka/llmcalculator/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/BarakaSoka/llmcalculator/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/BarakaSoka/llmcalculator/releases/tag/v0.2.3
 [0.2.2]: https://github.com/BarakaSoka/llmcalculator/releases/tag/v0.2.2
 [0.2.1]: https://github.com/BarakaSoka/llmcalculator/releases/tag/v0.2.1
 [0.2.0]: https://github.com/BarakaSoka/llmcalculator/releases/tag/v0.2.0

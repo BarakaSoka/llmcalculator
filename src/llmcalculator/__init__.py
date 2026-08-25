@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
 from .hardware import detect, manual, HardwareProfile, Accelerator, CPU
 from .models import ModelSpec, catalog
