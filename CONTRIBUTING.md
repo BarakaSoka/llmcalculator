@@ -144,6 +144,24 @@ pytest -m "not slow"
 Network-dependent tests use a `needs_net` guard and skip offline. Keep new
 network tests behind it so contributors on a plane are not blocked.
 
+## Dependency updates
+
+Dependabot proposes GitHub Actions updates monthly. They are handled
+automatically, with one deliberate exception:
+
+- **patch and minor** bumps are approved and queued for auto-merge. CI still
+  has to pass — auto-merge waits for the required check, it does not skip it
+- **major** bumps are labelled `major-update` and left for a human
+
+The exception exists because a green CI run is weaker evidence than it looks
+for a major bump. `release.yml` is never run by CI, so a change confined to
+that file arrives untested; `actions/download-artifact` v4 to v8 is the
+worked example, since it changed digest-mismatch handling from a warning to a
+hard failure. Read the release notes before merging one of those.
+
+If both `upload-artifact` and `download-artifact` have updates pending, merge
+them together — they have to agree on the artifact format.
+
 ## Security
 
 Do not open a public issue for a security problem. See [SECURITY.md](SECURITY.md).

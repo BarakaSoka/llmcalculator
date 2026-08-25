@@ -1,0 +1,71 @@
+name: Dependabot auto-merge
+
+# Approves and queues Dependabot's routine updates so monthly bumps do not
+# need hand-holding, while keeping a human in the loop for the ones that can
+# actually break something.
+#
+# Policy:
+#   patch / minor -> approved and queued for auto-merge
+#   major         -> labelled and left for a human, because a major bump of an
+#                    action can change behaviour in ways CI does not cover.
+#                    actions/download-artifact v4 -> v8 is the case in point:
+#                    it changed digest-mismatch handling from warn to error,
+#                    and it only appears in release.yml, which CI never runs.
+#
+# Auto-merge does not skip anything: GitHub still waits for the required
+# status check before merging, so a red CI run blocks the merge regardless.
+
+on: pull_request_target
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  dependabot:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      # Deliberately no checkout. pull_request_target runs with write
+      # permissions against the base repository, so checking out and running
+      # the PR's code would hand those permissions to the PR author. Every
+      # step below talks to the API only.
+      - name: Read update metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Approve and queue patch and minor updates
+        if: steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+            steps.meta.outputs.update-type == 'version-update:semver-minor'
+        run: |
+          gh pr review --approve "$PR_URL" \
+            --body "Patch/minor update. Approved automatically; auto-merge will wait for CI."
+          gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Flag major updates for a human
+        if: steps.meta.outputs.update-type == 'version-update:semver-major'
+        run: |
+          gh pr edit "$PR_URL" --add-label "major-update"
+          gh pr comment "$PR_URL" --body "$(cat <<'MSG'
+          **Major version bump — not auto-merged.**
+
+          A green CI run is weaker evidence than it looks for a major bump:
+
+          - CI never runs `release.yml`, so a change confined to that file is
+            untested by the checks on this PR
+          - Major releases of an action can change defaults without failing
+            any existing job
+
+          Worth reading the release notes before merging, and merging
+          `upload-artifact` and `download-artifact` together if both are
+          pending, since they must agree on the artifact format.
+          MSG
+          )"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

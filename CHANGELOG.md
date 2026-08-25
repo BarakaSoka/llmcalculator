@@ -6,6 +6,19 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Dependabot's patch and minor updates are now approved and auto-merged;
+  major updates are labelled `major-update` and left for a human. CI is still
+  required in both cases — auto-merge waits for the check rather than skipping
+  it.
+- Branch protection now requires one approving review rather than one from a
+  code owner. On this repository the two are near-identical for humans, since
+  only accounts with write access can cast an approval that counts, and there
+  is exactly one. The change is what lets the Dependabot workflow approve its
+  own routine bumps without a stored credential.
+
+
 ## [0.2.3] - 2026-08-25
 
 No functional change. This release exists to exercise the release workflow on
