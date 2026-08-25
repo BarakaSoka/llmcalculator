@@ -219,7 +219,29 @@ in allocator behaviour and buffer sizing.
 
 Yes for speed, no for possibility. Ollama, llama.cpp and this tool all work on
 CPU-only machines — roughly 3-10x slower than a GPU of the same memory size.
-`llmcalculator scan --device cpu` sizes against system RAM instead of VRAM.
+
+**Machines with no GPU are fully supported.** `scan` detects the absence, sizes
+everything against system RAM minus what the OS needs, and estimates CPU speed
+from memory bandwidth. This path runs on every push: GitHub's CI runners have no
+GPU, so Linux, macOS and Windows are all exercised without one.
+
+```
+$ llmcalculator scan          # on a 16 GB machine with no GPU
+
+  CPU        AMD Ryzen 5 5600
+  RAM        16.0 GB
+  GPU        none detected - CPU inference only
+
+ Workload             Rough ceiling   Largest usable model
+ ─────────────────────────────────────────────────────────
+ Inference            ~16B (Q4_K_M)   gpt-oss:20b (IQ4_XS)
+ QLoRA fine-tune      ~12B (nf4)      phi4:14b (nf4)
+ LoRA fine-tune       ~4B (bf16)      qwen3:4b-2507 (bf16)
+ Full fine-tune       ~0.4B (bf16)    qwen2.5:0.5b (bf16)
+```
+
+`--device cpu` forces sizing against system RAM even on a machine that has a
+GPU, which is what you want when a model is too big for VRAM.
 
 On Apple Silicon there is no separate VRAM: CPU and GPU share one pool, and
 macOS caps the GPU's share (about 75% of RAM, or RAM minus 8 GB above 36 GB).
@@ -247,7 +269,7 @@ issue template for it.
 git clone https://github.com/llmcalculator/llmcalculator
 cd llmcalculator
 pip install -e ".[dev]"
-pytest              # 105 tests
+pytest              # 121 tests
 ```
 
 Adding a model means one entry in `src/llmcalculator/models/catalog.json`.

@@ -151,12 +151,25 @@ def workload_table(model: ModelSpec, hardware: HardwareProfile,
     return out
 
 
+# Below this, quantization damage is severe enough that a smaller model at
+# higher precision is almost always the better answer. Headline "largest that
+# fits" figures stay above it so they are advice, not just arithmetic.
+USABLE_QUALITY = 0.95
+
+
 def largest_that_fits(hardware: HardwareProfile, workload: Workload,
-                      context: int = 8192, device: str = "auto") -> Optional[Estimate]:
-    """The biggest catalog model this machine can handle for a workload."""
+                      context: int = 8192, device: str = "auto",
+                      min_quality: float = USABLE_QUALITY) -> Optional[Estimate]:
+    """The biggest catalog model this machine can usefully run for a workload.
+
+    Deliberately not the biggest that fits at any precision. A 24B squeezed
+    into 11 GB at 3 bits technically fits, but it is worse than a 9B at 5 bits
+    and quoting it as the headline answer misleads.
+    """
     best: Optional[Estimate] = None
     for model in sorted(catalog.all_models(), key=lambda m: -m.params):
-        e = best_quant(model, hardware, workload, context=context, device=device)
+        e = best_quant(model, hardware, workload, min_quality=min_quality,
+                       context=context, device=device)
         if e and e.fits:
             if best is None or e.model.params > best.model.params:
                 best = e

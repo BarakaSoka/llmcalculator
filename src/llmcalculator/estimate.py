@@ -229,6 +229,15 @@ def _add_notes(est: Estimate, hw: HardwareProfile, fmt: quant.QuantFormat,
     """Attach the advice that actually helps, and nothing else."""
     b = est.breakdown
 
+    if est.device in ("gpu", "all-gpus") and not hw.has_gpu:
+        # Nothing about quantization or context helps here, and offering that
+        # advice would send someone chasing a fix for the wrong problem.
+        est.notes.append(
+            "No GPU was detected, so the GPU budget is zero and nothing can fit. "
+            "This machine can still run models on the CPU: drop --device, or pass "
+            "--device cpu, to size against your {:.0f} GB of system RAM.".format(hw.ram_gb))
+        return
+
     if not est.fits:
         over = (b.total - est.budget_bytes) / GB_F
         est.notes.append("Over budget by {:.1f} GB.".format(over))
@@ -295,7 +304,8 @@ def _next_smaller_format(fmt: quant.QuantFormat) -> Optional[quant.QuantFormat]:
 # --- higher-level queries --------------------------------------------------
 
 def best_quant(model: ModelSpec, hardware: HardwareProfile,
-               workload: Workload = workloads.INFERENCE, **kw) -> Optional[Estimate]:
+               workload: Workload = workloads.INFERENCE,
+               min_quality: float = 0.0, **kw) -> Optional[Estimate]:
     """The highest-quality quantization of this model that still fits.
 
     Only inference gets to search the ladder. A training workload fixes its own
@@ -307,6 +317,8 @@ def best_quant(model: ModelSpec, hardware: HardwareProfile,
         est = estimate(model, hardware, workload, workload.default_base_quant, **kw)
         return est if est.fits else None
     for fmt in quant.ladder():
+        if fmt.quality < min_quality:
+            continue
         est = estimate(model, hardware, workload, fmt.name, **kw)
         if est.fits:
             return est
@@ -376,7 +388,8 @@ def recommended_quant(model: ModelSpec, hardware: HardwareProfile,
     # Nothing fits. Report the sensible default rather than the most degraded
     # option, so the headline number is the one the user would actually face.
     fallback = estimate(model, hardware, workload, ladder[start].name, **kw)
-    if smallest is not None and smallest.quant_name != fallback.quant_name:
+    no_gpu = fallback.device in ("gpu", "all-gpus") and not hardware.has_gpu
+    if not no_gpu and smallest is not None and smallest.quant_name != fallback.quant_name:
         fallback.notes.append(
             "Even {} - the smallest quantization worth using - needs {:.1f} GB and "
             "still does not fit.".format(smallest.quant_name, smallest.total_gb))

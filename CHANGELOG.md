@@ -6,6 +6,28 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-08-25
+
+### Fixed
+
+- **Asking for a GPU budget on a machine without a GPU gave useless advice.**
+  It reported "1.7 GB needed of 0.0 GB available" and suggested lowering the
+  quantization, which cannot help when the budget is zero. It now explains that
+  no GPU was found and points at `--device cpu`.
+- **The "largest that fits" figure reached for severely degraded quantization.**
+  On a 16 GB machine it named a 24B model squeezed to 3 bits, which is worse
+  than a 9B at 5 bits. Headline figures now apply a quality floor, and the
+  column is labelled "largest usable model".
+- `scan` juxtaposed a "max size" quoted at one precision with an example using
+  another, which read as a contradiction. The precision is now attached to the
+  number it describes.
+- Parameter ceilings below 1B rendered as "~0B", which told the reader nothing.
+
+### Added
+
+- 16 tests covering GPU-less machines from 4 GB to 64 GB.
+
+
 ## [0.2.1] - 2026-08-25
 
 ### Added
@@ -84,7 +106,8 @@ First release.
   console script called `llmcalc`, and installing both would leave whichever
   landed last owning the command.
 
-[Unreleased]: https://github.com/BarakaSoka/llmcalculator/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/BarakaSoka/llmcalculator/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/BarakaSoka/llmcalculator/releases/tag/v0.2.2
 [0.2.1]: https://github.com/BarakaSoka/llmcalculator/releases/tag/v0.2.1
 [0.2.0]: https://github.com/BarakaSoka/llmcalculator/releases/tag/v0.2.0
 [0.1.0]: https://github.com/BarakaSoka/llmcalculator/releases/tag/v0.1.0

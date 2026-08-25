@@ -22,7 +22,8 @@ try:
 except ImportError:
     _RICH = False
 
-_WRAPPING_COLUMNS = {"Why", "Reason", "Notes", "Tags", "Largest that fits", "Model"}
+_WRAPPING_COLUMNS = {"Why", "Reason", "Notes", "Tags", "Largest that fits", "Model",
+                      "Largest usable model"}
 
 VERDICT_COLOR = {
     Verdict.EASY: "green",

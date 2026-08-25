@@ -77,10 +77,21 @@ def cmd_scan(args) -> int:
             example = "{} ({})".format(best.model.name, best.quant_name)
             colors.append(None)
         else:
-            example = "nothing in the catalog fits"
-            colors.append("red")
-        rows.append([wl.label, "~{:.0f}B".format(max_b), wl.default_base_quant, example])
-    render.table(["Workload", "Max size", "Precision", "Largest that fits"], rows, colors=colors)
+            # This column applies a quality floor. Saying "nothing fits" when a
+            # heavily quantized option exists would contradict the
+            # recommendations printed directly below.
+            degraded = compare.largest_that_fits(hw, wl, context=ctx, min_quality=0.0)
+            if degraded:
+                example = "{} ({}, low quality)".format(
+                    degraded.model.name, degraded.quant_name)
+                colors.append("yellow")
+            else:
+                example = "nothing in the catalog fits"
+                colors.append("red")
+        # Precision belongs with the number it describes: the rough ceiling is
+        # quoted at one format and the concrete example may use another.
+        rows.append([wl.label, "{} ({})".format(_fmt_size(max_b), wl.default_base_quant), example])
+    render.table(["Workload", "Rough ceiling", "Largest usable model"], rows, colors=colors)
 
     render.heading("Recommended models for inference")
     recs = compare.recommend(hw, limit=5, context=args.context)
@@ -101,6 +112,16 @@ def cmd_scan(args) -> int:
     print()
     print(render.paint("  Next: llmcalculator check <model>   or   llmcalculator compare a b c", "dim"))
     return 0
+
+
+def _fmt_size(params_b: float) -> str:
+    """Render a parameter ceiling. Rounding 0.4B to "~0B" tells the reader
+    nothing; below 1B the interesting fact is the order of magnitude."""
+    if params_b < 0.1:
+        return "under 0.1B"
+    if params_b < 1:
+        return "~{:.1f}B".format(params_b)
+    return "~{:.0f}B".format(params_b)
 
 
 def _scan_dict(hw: HardwareProfile) -> dict:
