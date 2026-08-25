@@ -54,10 +54,34 @@ llmcalculator check qwen2.5:7b -a           # ...across every workload
 llmcalculator compare llama3.1:8b qwen2.5:32b gpt-oss:20b
 llmcalculator recommend --tag code          # good coding models for this machine
 llmcalculator context llama3.1:8b           # how much does long context cost?
-llmcalculator models qwen                   # search the catalog
+llmcalculator models qwen                   # search the built-in catalog
 ```
 
-Any model on Hugging Face works, not just the built-in catalog:
+### Searching all of Hugging Face
+
+The built-in catalog covers models commonly run locally. To search the whole
+Hub and size every result against your machine:
+
+```bash
+llmcalculator search granite            # any query
+llmcalculator search coder -n 25        # more results
+llmcalculator trending                  # what the Hub is trending now
+```
+
+```
+$ llmcalculator search granite
+
+ Model                                 Size    Quant      Needs   Verdict
+ ────────────────────────────────────────────────────────────────────────
+ ibm-granite/granite-4.1-8b            8.4B    Q4_K_M    6.9 GB   * Comfortable
+ ibm-granite/granite-4.1-30b           28.9B   Q4_K_M   19.6 GB   + Fits
+ ibm-granite/granite-4.1-3b            3.4B    Q4_K_M    3.2 GB   * Comfortable
+```
+
+Results are cached for a week, so repeat searches are instant and work offline.
+Manage the cache with `llmcalculator cache` and `llmcalculator cache --clear`.
+
+Any single model works by id, catalogued or not:
 
 ```bash
 llmcalculator check mistralai/Mistral-Small-24B-Instruct-2501
@@ -76,7 +100,8 @@ llmcalculator tui
 ```
 
 Browse the catalog with live verdicts. `w` cycles workload, `c` cycles context,
-`/` searches, `r` filters to models worth running on your machine.
+`/` searches, `r` filters to models worth running here, and `h` searches all of
+Hugging Face for whatever is in the filter box.
 
 ### 3. Browser app
 
@@ -84,8 +109,9 @@ Browse the catalog with live verdicts. `w` cycles workload, `c` cycles context,
 llmcalculator app
 ```
 
-Opens a local page at `127.0.0.1:8770`. Nothing is uploaded and nothing is
-fetched from the internet — the server is your own machine.
+Opens a local page at `127.0.0.1:8770`. The server is your own machine, and the
+page itself is fully self-contained. The **Hugging Face** tab searches the Hub
+live; every other tab works offline.
 
 ## What it tells you
 
@@ -152,6 +178,12 @@ llmcalculator scan --json | jq '.capabilities.qlora.max_params_b'
 
 ## How the numbers are worked out
 
+**Parameter counts** for uncatalogued models are computed analytically from
+`config.json`, accounting for grouped-query attention, tied embeddings, and
+mixture-of-experts layouts where routed experts are far narrower than the dense
+feed-forward width. Architectures the formula does not cover — Mamba, RWKV and
+other hybrids — are refused rather than guessed at.
+
 **Weights** use measured effective bytes-per-weight for each format, not the
 nominal bit count. Q4_K_M is nominally 4 bits but lands near 4.8 once scales,
 mins and the higher-precision attention tensors are counted.
@@ -187,12 +219,15 @@ macOS caps the GPU's share (about 75% of RAM, or RAM minus 8 GB above 36 GB).
 git clone https://github.com/llmcalculator/llmcalculator
 cd llmcalculator
 pip install -e ".[dev]"
-pytest              # 65 tests
+pytest              # 93 tests
 ```
 
 Adding a model means one entry in `src/llmcalculator/models/catalog.json`.
 Copy the architecture fields straight from the model's `config.json` on
-Hugging Face.
+Hugging Face — see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Note you may not need to: `llmcalculator search` covers the whole Hub already.
+The catalog exists so common models work offline and appear in `recommend`.
 
 ## License
 

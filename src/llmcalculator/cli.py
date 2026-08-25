@@ -19,6 +19,7 @@ from .estimate import (
 from .hardware import detect, manual
 from .hardware.base import HardwareProfile
 from .models import catalog
+from .models import hub
 from .ui import render
 
 
@@ -249,7 +250,13 @@ def cmd_models(args) -> int:
                           for m in models], indent=2))
         return 0
     if not models:
-        print("No models match {!r}.".format(args.query))
+        print("No catalogued model matches {!r}.".format(args.query))
+        print()
+        print("The catalog covers {} models commonly run locally. To search all of"
+              .format(len(catalog.all_models())))
+        print("Hugging Face instead:")
+        print()
+        print("    llmcalculator search {}".format(args.query))
         return 1
     rows = [[m.name, "{:.1f}B".format(m.params_b),
              "{:.1f}B".format(m.active_params / 1e9) if m.is_moe else "-",
@@ -318,6 +325,104 @@ def cmd_context(args) -> int:
         print("  Longest context that fits: {}".format(
             render.paint(render.fmt_ctx(max(fitting, key=lambda e: e.context).context), "green")))
     print()
+    return 0
+
+
+def cmd_search(args) -> int:
+    """Search the whole Hugging Face Hub and size every hit."""
+    hw = _hardware_from_args(args)
+    wl = workloads.get(args.workload)
+    try:
+        results = hub.search_resolved(
+            args.query, limit=args.limit, sort=args.sort,
+            include_gguf=args.gguf, use_cache=not args.no_cache)
+    except RuntimeError as exc:
+        print(render.paint("Error: {}".format(exc), "red"), file=sys.stderr)
+        return 2
+
+    if not results:
+        print("Nothing on the Hub matches {!r}.".format(args.query))
+        return 1
+
+    rows, colors, payload = [], [], []
+    for r in results:
+        if not r.resolved:
+            rows.append([r.hub.id, "-", "-", "-", r.error])
+            colors.append("dim")
+            continue
+        est = recommended_quant(r.spec, hw, wl, context=args.context, device=args.device)
+        payload.append({**est.as_dict(), "hf_id": r.hub.id,
+                        "downloads": r.hub.downloads, "likes": r.hub.likes})
+        rows.append([
+            r.hub.id,
+            "{:.1f}B".format(r.spec.params_b),
+            est.quant_name,
+            "{:.1f} GB".format(est.total_gb),
+            render.verdict_cell(est),
+        ])
+        colors.append(render.VERDICT_COLOR[est.verdict])
+
+    if args.json:
+        print(json.dumps(payload, indent=2))
+        return 0
+
+    render.heading("Hugging Face results for {!r}".format(args.query))
+    render.table(["Model", "Size", "Quant", "Needs", "Verdict"], rows, colors=colors)
+
+    fits = [r for r in results if r.resolved]
+    unresolved = len(results) - len(fits)
+    if unresolved:
+        print()
+        print(render.paint(
+            "  {} result(s) could not be sized. Gated repos need HF_TOKEN set."
+            .format(unresolved), "dim"))
+    print()
+    print(render.paint("  Size any of these in full with: llmcalculator check <model-id>", "dim"))
+    return 0
+
+
+def cmd_trending(args) -> int:
+    """What the Hub is trending right now, sized for this machine."""
+    hw = _hardware_from_args(args)
+    wl = workloads.get(args.workload)
+    try:
+        results = hub.trending(limit=args.limit, use_cache=not args.no_cache)
+    except RuntimeError as exc:
+        print(render.paint("Error: {}".format(exc), "red"), file=sys.stderr)
+        return 2
+
+    rows, colors = [], []
+    for r in results:
+        if not r.resolved:
+            continue
+        est = recommended_quant(r.spec, hw, wl, context=args.context, device=args.device)
+        rows.append([r.hub.id, "{:.1f}B".format(r.spec.params_b), est.quant_name,
+                     "{:.1f} GB".format(est.total_gb), render.verdict_cell(est)])
+        colors.append(render.VERDICT_COLOR[est.verdict])
+
+    if not rows:
+        print("Could not resolve any trending models right now.")
+        return 1
+    render.heading("Trending on Hugging Face")
+    render.table(["Model", "Size", "Quant", "Needs", "Verdict"], rows, colors=colors)
+    print()
+    return 0
+
+
+def cmd_cache(args) -> int:
+    """Inspect or clear the Hub response cache."""
+    d = hub.cache_dir()
+    files = list(d.glob("*.json"))
+    if args.clear:
+        n = hub.clear_cache()
+        print("Cleared {} cached response(s) from {}".format(n, d))
+        return 0
+    total = sum(f.stat().st_size for f in files) if files else 0
+    print("Cache directory : {}".format(d))
+    print("Cached responses: {}".format(len(files)))
+    print("Size            : {:.1f} KB".format(total / 1024))
+    print()
+    print("Clear it with: llmcalculator cache --clear")
     return 0
 
 
@@ -395,6 +500,26 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("query", nargs="?", help="filter by name, family or tag")
     s.add_argument("--json", action="store_true")
     s.set_defaults(func=cmd_models)
+
+    s = common(sub.add_parser("search", help="search all of Hugging Face, not just the catalog"))
+    s.add_argument("query", help="what to look for, e.g. granite, coder, 7b")
+    s.add_argument("--limit", "-n", type=int, default=15)
+    s.add_argument("--sort", default="downloads",
+                   choices=["downloads", "likes", "trendingScore", "lastModified"])
+    s.add_argument("--workload", "-w", default="inference")
+    s.add_argument("--gguf", action="store_true", help="include GGUF-only repositories")
+    s.add_argument("--no-cache", action="store_true", help="bypass the local cache")
+    s.set_defaults(func=cmd_search)
+
+    s = common(sub.add_parser("trending", help="what the Hub is trending, sized for you"))
+    s.add_argument("--limit", "-n", type=int, default=15)
+    s.add_argument("--workload", "-w", default="inference")
+    s.add_argument("--no-cache", action="store_true")
+    s.set_defaults(func=cmd_trending)
+
+    s = sub.add_parser("cache", help="inspect or clear the Hugging Face cache")
+    s.add_argument("--clear", action="store_true", help="delete every cached response")
+    s.set_defaults(func=cmd_cache)
 
     s = common(sub.add_parser("tui", help="interactive terminal interface"))
     s.set_defaults(func=cmd_tui)

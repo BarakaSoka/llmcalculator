@@ -1,54 +1,1143 @@
 [
-{"name":"llama3.2:1b","hf_id":"meta-llama/Llama-3.2-1B-Instruct","family":"llama","params":1.24e9,"n_layers":16,"hidden_size":2048,"n_heads":32,"n_kv_heads":8,"head_dim":64,"vocab_size":128256,"max_context":131072,"license":"llama3.2","tags":["tiny","edge"]},
-{"name":"llama3.2:3b","hf_id":"meta-llama/Llama-3.2-3B-Instruct","family":"llama","params":3.21e9,"n_layers":28,"hidden_size":3072,"n_heads":24,"n_kv_heads":8,"head_dim":128,"vocab_size":128256,"max_context":131072,"license":"llama3.2","tags":["small"]},
-{"name":"llama3.1:8b","hf_id":"meta-llama/Llama-3.1-8B-Instruct","family":"llama","params":8.03e9,"n_layers":32,"hidden_size":4096,"n_heads":32,"n_kv_heads":8,"head_dim":128,"vocab_size":128256,"max_context":131072,"license":"llama3.1","tags":["general","popular"]},
-{"name":"llama3.1:70b","hf_id":"meta-llama/Llama-3.1-70B-Instruct","family":"llama","params":70.6e9,"n_layers":80,"hidden_size":8192,"n_heads":64,"n_kv_heads":8,"head_dim":128,"vocab_size":128256,"max_context":131072,"license":"llama3.1","tags":["large","frontier-ish"]},
-{"name":"llama3.1:405b","hf_id":"meta-llama/Llama-3.1-405B-Instruct","family":"llama","params":405e9,"n_layers":126,"hidden_size":16384,"n_heads":128,"n_kv_heads":8,"head_dim":128,"vocab_size":128256,"max_context":131072,"license":"llama3.1","tags":["frontier","datacenter"]},
-
-{"name":"qwen2.5:0.5b","hf_id":"Qwen/Qwen2.5-0.5B-Instruct","family":"qwen","params":0.49e9,"n_layers":24,"hidden_size":896,"n_heads":14,"n_kv_heads":2,"head_dim":64,"vocab_size":151936,"max_context":32768,"license":"apache-2.0","tags":["tiny","edge"]},
-{"name":"qwen2.5:1.5b","hf_id":"Qwen/Qwen2.5-1.5B-Instruct","family":"qwen","params":1.54e9,"n_layers":28,"hidden_size":1536,"n_heads":12,"n_kv_heads":2,"head_dim":128,"vocab_size":151936,"max_context":32768,"license":"apache-2.0","tags":["tiny"]},
-{"name":"qwen2.5:3b","hf_id":"Qwen/Qwen2.5-3B-Instruct","family":"qwen","params":3.09e9,"n_layers":36,"hidden_size":2048,"n_heads":16,"n_kv_heads":2,"head_dim":128,"vocab_size":151936,"max_context":32768,"license":"qwen-research","tags":["small"]},
-{"name":"qwen2.5:7b","hf_id":"Qwen/Qwen2.5-7B-Instruct","family":"qwen","params":7.62e9,"n_layers":28,"hidden_size":3584,"n_heads":28,"n_kv_heads":4,"head_dim":128,"vocab_size":152064,"max_context":32768,"license":"apache-2.0","tags":["general","popular"]},
-{"name":"qwen2.5:14b","hf_id":"Qwen/Qwen2.5-14B-Instruct","family":"qwen","params":14.8e9,"n_layers":48,"hidden_size":5120,"n_heads":40,"n_kv_heads":8,"head_dim":128,"vocab_size":152064,"max_context":32768,"license":"apache-2.0","tags":["mid"]},
-{"name":"qwen2.5:32b","hf_id":"Qwen/Qwen2.5-32B-Instruct","family":"qwen","params":32.8e9,"n_layers":64,"hidden_size":5120,"n_heads":40,"n_kv_heads":8,"head_dim":128,"vocab_size":152064,"max_context":32768,"license":"apache-2.0","tags":["large","workstation"]},
-{"name":"qwen2.5:72b","hf_id":"Qwen/Qwen2.5-72B-Instruct","family":"qwen","params":72.7e9,"n_layers":80,"hidden_size":8192,"n_heads":64,"n_kv_heads":8,"head_dim":128,"vocab_size":152064,"max_context":32768,"license":"qwen","tags":["large"]},
-{"name":"qwen2.5-coder:7b","hf_id":"Qwen/Qwen2.5-Coder-7B-Instruct","family":"qwen","params":7.62e9,"n_layers":28,"hidden_size":3584,"n_heads":28,"n_kv_heads":4,"head_dim":128,"vocab_size":152064,"max_context":32768,"license":"apache-2.0","tags":["code"]},
-{"name":"qwen2.5-coder:32b","hf_id":"Qwen/Qwen2.5-Coder-32B-Instruct","family":"qwen","params":32.8e9,"n_layers":64,"hidden_size":5120,"n_heads":40,"n_kv_heads":8,"head_dim":128,"vocab_size":152064,"max_context":32768,"license":"apache-2.0","tags":["code","popular"]},
-
-{"name":"qwen3:4b","hf_id":"Qwen/Qwen3-4B","family":"qwen3","params":4.02e9,"n_layers":36,"hidden_size":2560,"n_heads":32,"n_kv_heads":8,"head_dim":128,"vocab_size":151936,"max_context":32768,"license":"apache-2.0","tags":["small","reasoning"]},
-{"name":"qwen3:8b","hf_id":"Qwen/Qwen3-8B","family":"qwen3","params":8.19e9,"n_layers":36,"hidden_size":4096,"n_heads":32,"n_kv_heads":8,"head_dim":128,"vocab_size":151936,"max_context":32768,"license":"apache-2.0","tags":["general","reasoning"]},
-{"name":"qwen3:14b","hf_id":"Qwen/Qwen3-14B","family":"qwen3","params":14.8e9,"n_layers":40,"hidden_size":5120,"n_heads":40,"n_kv_heads":8,"head_dim":128,"vocab_size":151936,"max_context":32768,"license":"apache-2.0","tags":["mid","reasoning"]},
-{"name":"qwen3:32b","hf_id":"Qwen/Qwen3-32B","family":"qwen3","params":32.8e9,"n_layers":64,"hidden_size":5120,"n_heads":64,"n_kv_heads":8,"head_dim":128,"vocab_size":151936,"max_context":32768,"license":"apache-2.0","tags":["large","reasoning"]},
-{"name":"qwen3:30b-a3b","hf_id":"Qwen/Qwen3-30B-A3B","family":"qwen3","params":30.5e9,"active_params":3.3e9,"n_layers":48,"hidden_size":2048,"n_heads":32,"n_kv_heads":4,"head_dim":128,"vocab_size":151936,"max_context":32768,"license":"apache-2.0","tags":["moe","fast"]},
-{"name":"qwen3:235b-a22b","hf_id":"Qwen/Qwen3-235B-A22B","family":"qwen3","params":235e9,"active_params":22e9,"n_layers":94,"hidden_size":4096,"n_heads":64,"n_kv_heads":4,"head_dim":128,"vocab_size":151936,"max_context":32768,"license":"apache-2.0","tags":["moe","frontier"]},
-
-{"name":"mistral:7b","hf_id":"mistralai/Mistral-7B-Instruct-v0.3","family":"mistral","params":7.25e9,"n_layers":32,"hidden_size":4096,"n_heads":32,"n_kv_heads":8,"head_dim":128,"vocab_size":32768,"max_context":32768,"license":"apache-2.0","tags":["general","popular"]},
-{"name":"mistral-nemo:12b","hf_id":"mistralai/Mistral-Nemo-Instruct-2407","family":"mistral","params":12.2e9,"n_layers":40,"hidden_size":5120,"n_heads":32,"n_kv_heads":8,"head_dim":128,"vocab_size":131072,"max_context":131072,"license":"apache-2.0","tags":["mid","long-context"]},
-{"name":"mistral-small:24b","hf_id":"mistralai/Mistral-Small-24B-Instruct-2501","family":"mistral","params":23.6e9,"n_layers":40,"hidden_size":5120,"n_heads":32,"n_kv_heads":8,"head_dim":128,"vocab_size":131072,"max_context":32768,"license":"apache-2.0","tags":["mid","workstation"]},
-{"name":"mixtral:8x7b","hf_id":"mistralai/Mixtral-8x7B-Instruct-v0.1","family":"mistral","params":46.7e9,"active_params":12.9e9,"n_layers":32,"hidden_size":4096,"n_heads":32,"n_kv_heads":8,"head_dim":128,"vocab_size":32000,"max_context":32768,"license":"apache-2.0","tags":["moe"]},
-
-{"name":"gemma2:2b","hf_id":"google/gemma-2-2b-it","family":"gemma","params":2.61e9,"n_layers":26,"hidden_size":2304,"n_heads":8,"n_kv_heads":4,"head_dim":256,"vocab_size":256000,"max_context":8192,"license":"gemma","tags":["tiny"]},
-{"name":"gemma2:9b","hf_id":"google/gemma-2-9b-it","family":"gemma","params":9.24e9,"n_layers":42,"hidden_size":3584,"n_heads":16,"n_kv_heads":8,"head_dim":256,"vocab_size":256000,"max_context":8192,"license":"gemma","tags":["general"]},
-{"name":"gemma2:27b","hf_id":"google/gemma-2-27b-it","family":"gemma","params":27.2e9,"n_layers":46,"hidden_size":4608,"n_heads":32,"n_kv_heads":16,"head_dim":128,"vocab_size":256000,"max_context":8192,"license":"gemma","tags":["large"]},
-{"name":"gemma3:4b","hf_id":"google/gemma-3-4b-it","family":"gemma","params":4.30e9,"n_layers":34,"hidden_size":2560,"n_heads":8,"n_kv_heads":4,"head_dim":256,"vocab_size":262144,"max_context":131072,"license":"gemma","tags":["small","multimodal"]},
-{"name":"gemma3:12b","hf_id":"google/gemma-3-12b-it","family":"gemma","params":12.2e9,"n_layers":48,"hidden_size":3840,"n_heads":16,"n_kv_heads":8,"head_dim":256,"vocab_size":262144,"max_context":131072,"license":"gemma","tags":["mid","multimodal"]},
-{"name":"gemma3:27b","hf_id":"google/gemma-3-27b-it","family":"gemma","params":27.4e9,"n_layers":62,"hidden_size":5376,"n_heads":32,"n_kv_heads":16,"head_dim":128,"vocab_size":262144,"max_context":131072,"license":"gemma","tags":["large","multimodal"]},
-
-{"name":"phi3:3.8b","hf_id":"microsoft/Phi-3-mini-4k-instruct","family":"phi","params":3.82e9,"n_layers":32,"hidden_size":3072,"n_heads":32,"n_kv_heads":32,"head_dim":96,"vocab_size":32064,"max_context":4096,"license":"mit","tags":["small"]},
-{"name":"phi4:14b","hf_id":"microsoft/phi-4","family":"phi","params":14.7e9,"n_layers":40,"hidden_size":5120,"n_heads":40,"n_kv_heads":10,"head_dim":128,"vocab_size":100352,"max_context":16384,"license":"mit","tags":["mid","reasoning"]},
-{"name":"phi4-mini:3.8b","hf_id":"microsoft/Phi-4-mini-instruct","family":"phi","params":3.84e9,"n_layers":32,"hidden_size":3072,"n_heads":24,"n_kv_heads":8,"head_dim":128,"vocab_size":200064,"max_context":131072,"license":"mit","tags":["small"]},
-
-{"name":"deepseek-r1:7b","hf_id":"deepseek-ai/DeepSeek-R1-Distill-Qwen-7B","family":"deepseek","params":7.62e9,"n_layers":28,"hidden_size":3584,"n_heads":28,"n_kv_heads":4,"head_dim":128,"vocab_size":152064,"max_context":32768,"license":"mit","tags":["reasoning"]},
-{"name":"deepseek-r1:14b","hf_id":"deepseek-ai/DeepSeek-R1-Distill-Qwen-14B","family":"deepseek","params":14.8e9,"n_layers":48,"hidden_size":5120,"n_heads":40,"n_kv_heads":8,"head_dim":128,"vocab_size":152064,"max_context":32768,"license":"mit","tags":["reasoning"]},
-{"name":"deepseek-r1:32b","hf_id":"deepseek-ai/DeepSeek-R1-Distill-Qwen-32B","family":"deepseek","params":32.8e9,"n_layers":64,"hidden_size":5120,"n_heads":40,"n_kv_heads":8,"head_dim":128,"vocab_size":152064,"max_context":32768,"license":"mit","tags":["reasoning","workstation"]},
-{"name":"deepseek-v3:671b","hf_id":"deepseek-ai/DeepSeek-V3","family":"deepseek","params":671e9,"active_params":37e9,"n_layers":61,"hidden_size":7168,"n_heads":128,"n_kv_heads":128,"head_dim":56,"vocab_size":129280,"max_context":131072,"license":"deepseek","tags":["moe","frontier","datacenter"]},
-
-{"name":"gpt-oss:20b","hf_id":"openai/gpt-oss-20b","family":"gpt-oss","params":20.9e9,"active_params":3.6e9,"n_layers":24,"hidden_size":2880,"n_heads":64,"n_kv_heads":8,"head_dim":64,"vocab_size":201088,"max_context":131072,"license":"apache-2.0","tags":["moe","fast","reasoning"]},
-{"name":"gpt-oss:120b","hf_id":"openai/gpt-oss-120b","family":"gpt-oss","params":116.8e9,"active_params":5.1e9,"n_layers":36,"hidden_size":2880,"n_heads":64,"n_kv_heads":8,"head_dim":64,"vocab_size":201088,"max_context":131072,"license":"apache-2.0","tags":["moe","reasoning"]},
-
-{"name":"smollm2:1.7b","hf_id":"HuggingFaceTB/SmolLM2-1.7B-Instruct","family":"smol","params":1.71e9,"n_layers":24,"hidden_size":2048,"n_heads":32,"n_kv_heads":32,"head_dim":64,"vocab_size":49152,"max_context":8192,"license":"apache-2.0","tags":["tiny","edge"]},
-{"name":"tinyllama:1.1b","hf_id":"TinyLlama/TinyLlama-1.1B-Chat-v1.0","family":"llama","params":1.10e9,"n_layers":22,"hidden_size":2048,"n_heads":32,"n_kv_heads":4,"head_dim":64,"vocab_size":32000,"max_context":2048,"license":"apache-2.0","tags":["tiny","edge"]},
-{"name":"codestral:22b","hf_id":"mistralai/Codestral-22B-v0.1","family":"mistral","params":22.2e9,"n_layers":56,"hidden_size":6144,"n_heads":48,"n_kv_heads":8,"head_dim":128,"vocab_size":32768,"max_context":32768,"license":"mnpl","tags":["code"]},
-{"name":"command-r:35b","hf_id":"CohereForAI/c4ai-command-r-v01","family":"cohere","params":35.0e9,"n_layers":40,"hidden_size":8192,"n_heads":64,"n_kv_heads":64,"head_dim":128,"vocab_size":256000,"max_context":131072,"license":"cc-by-nc","tags":["rag","large"]},
-{"name":"yi:34b","hf_id":"01-ai/Yi-1.5-34B-Chat","family":"yi","params":34.4e9,"n_layers":60,"hidden_size":7168,"n_heads":56,"n_kv_heads":8,"head_dim":128,"vocab_size":64000,"max_context":32768,"license":"apache-2.0","tags":["large"]}
+ {
+  "name": "command-r:35b",
+  "hf_id": "CohereForAI/c4ai-command-r-v01",
+  "family": "cohere",
+  "params": 35000000000.0,
+  "n_layers": 40,
+  "hidden_size": 8192,
+  "n_heads": 64,
+  "n_kv_heads": 64,
+  "head_dim": 128,
+  "vocab_size": 256000,
+  "max_context": 131072,
+  "license": "cc-by-nc",
+  "tags": [
+   "rag",
+   "large"
+  ]
+ },
+ {
+  "name": "deepseek-r1:7b",
+  "hf_id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
+  "family": "deepseek",
+  "params": 7620000000.0,
+  "n_layers": 28,
+  "hidden_size": 3584,
+  "n_heads": 28,
+  "n_kv_heads": 4,
+  "head_dim": 128,
+  "vocab_size": 152064,
+  "max_context": 32768,
+  "license": "mit",
+  "tags": [
+   "reasoning"
+  ]
+ },
+ {
+  "name": "deepseek-r1:14b",
+  "hf_id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
+  "family": "deepseek",
+  "params": 14800000000.0,
+  "n_layers": 48,
+  "hidden_size": 5120,
+  "n_heads": 40,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 152064,
+  "max_context": 32768,
+  "license": "mit",
+  "tags": [
+   "reasoning"
+  ]
+ },
+ {
+  "name": "deepseek-r1:32b",
+  "hf_id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+  "family": "deepseek",
+  "params": 32800000000.0,
+  "n_layers": 64,
+  "hidden_size": 5120,
+  "n_heads": 40,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 152064,
+  "max_context": 32768,
+  "license": "mit",
+  "tags": [
+   "reasoning",
+   "workstation"
+  ]
+ },
+ {
+  "name": "deepseek-v3:671b",
+  "hf_id": "deepseek-ai/DeepSeek-V3",
+  "family": "deepseek",
+  "params": 671000000000.0,
+  "active_params": 37000000000.0,
+  "n_layers": 61,
+  "hidden_size": 7168,
+  "n_heads": 128,
+  "n_kv_heads": 128,
+  "head_dim": 56,
+  "vocab_size": 129280,
+  "max_context": 131072,
+  "license": "deepseek",
+  "tags": [
+   "moe",
+   "frontier",
+   "datacenter"
+  ]
+ },
+ {
+  "name": "deepseek-v3.1:671b",
+  "hf_id": "deepseek-ai/DeepSeek-V3.1",
+  "family": "deepseek",
+  "params": 672000000000.0,
+  "n_layers": 61,
+  "hidden_size": 7168,
+  "n_heads": 128,
+  "n_kv_heads": 128,
+  "head_dim": 56,
+  "vocab_size": 129280,
+  "max_context": 163840,
+  "license": "see model card",
+  "tags": [
+   "moe",
+   "frontier"
+  ],
+  "active_params": 38570000000.0
+ },
+ {
+  "name": "exaone4:32b",
+  "hf_id": "LGAI-EXAONE/EXAONE-4.0-32B",
+  "family": "exaone",
+  "params": 32000000000.0,
+  "n_layers": 64,
+  "hidden_size": 5120,
+  "n_heads": 40,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 102400,
+  "max_context": 131072,
+  "license": "see model card",
+  "tags": [
+   "large",
+   "reasoning"
+  ]
+ },
+ {
+  "name": "gemma2:2b",
+  "hf_id": "google/gemma-2-2b-it",
+  "family": "gemma",
+  "params": 2610000000.0,
+  "n_layers": 26,
+  "hidden_size": 2304,
+  "n_heads": 8,
+  "n_kv_heads": 4,
+  "head_dim": 256,
+  "vocab_size": 256000,
+  "max_context": 8192,
+  "license": "gemma",
+  "tags": [
+   "tiny"
+  ]
+ },
+ {
+  "name": "gemma3:4b",
+  "hf_id": "google/gemma-3-4b-it",
+  "family": "gemma",
+  "params": 4300000000.0,
+  "n_layers": 34,
+  "hidden_size": 2560,
+  "n_heads": 8,
+  "n_kv_heads": 4,
+  "head_dim": 256,
+  "vocab_size": 262144,
+  "max_context": 131072,
+  "license": "gemma",
+  "tags": [
+   "small",
+   "multimodal"
+  ]
+ },
+ {
+  "name": "gemma2:9b",
+  "hf_id": "google/gemma-2-9b-it",
+  "family": "gemma",
+  "params": 9240000000.0,
+  "n_layers": 42,
+  "hidden_size": 3584,
+  "n_heads": 16,
+  "n_kv_heads": 8,
+  "head_dim": 256,
+  "vocab_size": 256000,
+  "max_context": 8192,
+  "license": "gemma",
+  "tags": [
+   "general"
+  ]
+ },
+ {
+  "name": "gemma3:12b",
+  "hf_id": "google/gemma-3-12b-it",
+  "family": "gemma",
+  "params": 12200000000.0,
+  "n_layers": 48,
+  "hidden_size": 3840,
+  "n_heads": 16,
+  "n_kv_heads": 8,
+  "head_dim": 256,
+  "vocab_size": 262144,
+  "max_context": 131072,
+  "license": "gemma",
+  "tags": [
+   "mid",
+   "multimodal"
+  ]
+ },
+ {
+  "name": "gemma2:27b",
+  "hf_id": "google/gemma-2-27b-it",
+  "family": "gemma",
+  "params": 27200000000.0,
+  "n_layers": 46,
+  "hidden_size": 4608,
+  "n_heads": 32,
+  "n_kv_heads": 16,
+  "head_dim": 128,
+  "vocab_size": 256000,
+  "max_context": 8192,
+  "license": "gemma",
+  "tags": [
+   "large"
+  ]
+ },
+ {
+  "name": "gemma3:27b",
+  "hf_id": "google/gemma-3-27b-it",
+  "family": "gemma",
+  "params": 27400000000.0,
+  "n_layers": 62,
+  "hidden_size": 5376,
+  "n_heads": 32,
+  "n_kv_heads": 16,
+  "head_dim": 128,
+  "vocab_size": 262144,
+  "max_context": 131072,
+  "license": "gemma",
+  "tags": [
+   "large",
+   "multimodal"
+  ]
+ },
+ {
+  "name": "glm4.5-air:106b",
+  "hf_id": "zai-org/GLM-4.5-Air",
+  "family": "glm",
+  "params": 106800000000.0,
+  "n_layers": 46,
+  "hidden_size": 4096,
+  "n_heads": 96,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 151552,
+  "max_context": 131072,
+  "license": "see model card",
+  "tags": [
+   "moe",
+   "reasoning"
+  ],
+  "active_params": 13400000000.0
+ },
+ {
+  "name": "gpt-oss:20b",
+  "hf_id": "openai/gpt-oss-20b",
+  "family": "gpt-oss",
+  "params": 20900000000.0,
+  "active_params": 3600000000.0,
+  "n_layers": 24,
+  "hidden_size": 2880,
+  "n_heads": 64,
+  "n_kv_heads": 8,
+  "head_dim": 64,
+  "vocab_size": 201088,
+  "max_context": 131072,
+  "license": "apache-2.0",
+  "tags": [
+   "moe",
+   "fast",
+   "reasoning"
+  ]
+ },
+ {
+  "name": "gpt-oss:120b",
+  "hf_id": "openai/gpt-oss-120b",
+  "family": "gpt-oss",
+  "params": 116800000000.0,
+  "active_params": 5100000000.0,
+  "n_layers": 36,
+  "hidden_size": 2880,
+  "n_heads": 64,
+  "n_kv_heads": 8,
+  "head_dim": 64,
+  "vocab_size": 201088,
+  "max_context": 131072,
+  "license": "apache-2.0",
+  "tags": [
+   "moe",
+   "reasoning"
+  ]
+ },
+ {
+  "name": "granite4:3b",
+  "hf_id": "ibm-granite/granite-4.1-3b",
+  "family": "granite",
+  "params": 3403000000.0,
+  "n_layers": 40,
+  "hidden_size": 2560,
+  "n_heads": 40,
+  "n_kv_heads": 8,
+  "head_dim": 64,
+  "vocab_size": 100352,
+  "max_context": 131072,
+  "license": "see model card",
+  "tags": [
+   "small"
+  ]
+ },
+ {
+  "name": "granite4:8b",
+  "hf_id": "ibm-granite/granite-4.1-8b",
+  "family": "granite",
+  "params": 8381000000.0,
+  "n_layers": 40,
+  "hidden_size": 4096,
+  "n_heads": 32,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 100352,
+  "max_context": 131072,
+  "license": "see model card",
+  "tags": [
+   "general"
+  ]
+ },
+ {
+  "name": "granite4:30b",
+  "hf_id": "ibm-granite/granite-4.1-30b",
+  "family": "granite",
+  "params": 28870000000.0,
+  "n_layers": 64,
+  "hidden_size": 4096,
+  "n_heads": 32,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 100352,
+  "max_context": 131072,
+  "license": "see model card",
+  "tags": [
+   "large"
+  ]
+ },
+ {
+  "name": "internlm3:8b",
+  "hf_id": "internlm/internlm3-8b-instruct",
+  "family": "internlm",
+  "params": 8804000000.0,
+  "n_layers": 48,
+  "hidden_size": 4096,
+  "n_heads": 32,
+  "n_kv_heads": 2,
+  "head_dim": 128,
+  "vocab_size": 128512,
+  "max_context": 32768,
+  "license": "see model card",
+  "tags": [
+   "general"
+  ]
+ },
+ {
+  "name": "kimi-k2:1t",
+  "hf_id": "moonshotai/Kimi-K2-Instruct",
+  "family": "kimi",
+  "params": 1033000000000.0,
+  "n_layers": 61,
+  "hidden_size": 7168,
+  "n_heads": 64,
+  "n_kv_heads": 64,
+  "head_dim": 112,
+  "vocab_size": 163840,
+  "max_context": 131072,
+  "license": "see model card",
+  "tags": [
+   "moe",
+   "frontier"
+  ],
+  "active_params": 39060000000.0
+ },
+ {
+  "name": "lfm2:2.6b",
+  "hf_id": "LiquidAI/LFM2-2.6B",
+  "family": "lfm",
+  "params": 2565000000.0,
+  "n_layers": 30,
+  "hidden_size": 2048,
+  "n_heads": 32,
+  "n_kv_heads": 8,
+  "head_dim": 64,
+  "vocab_size": 65536,
+  "max_context": 128000,
+  "license": "see model card",
+  "tags": [
+   "tiny",
+   "edge"
+  ]
+ },
+ {
+  "name": "ling-mini:16b",
+  "hf_id": "inclusionAI/Ling-mini-2.0",
+  "family": "ling",
+  "params": 16190000000.0,
+  "n_layers": 20,
+  "hidden_size": 2048,
+  "n_heads": 16,
+  "n_kv_heads": 4,
+  "head_dim": 128,
+  "vocab_size": 157184,
+  "max_context": 32768,
+  "license": "see model card",
+  "tags": [
+   "moe",
+   "fast"
+  ],
+  "active_params": 1363000000.0
+ },
+ {
+  "name": "tinyllama:1.1b",
+  "hf_id": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+  "family": "llama",
+  "params": 1100000000.0,
+  "n_layers": 22,
+  "hidden_size": 2048,
+  "n_heads": 32,
+  "n_kv_heads": 4,
+  "head_dim": 64,
+  "vocab_size": 32000,
+  "max_context": 2048,
+  "license": "apache-2.0",
+  "tags": [
+   "tiny",
+   "edge"
+  ]
+ },
+ {
+  "name": "llama3.2:1b",
+  "hf_id": "meta-llama/Llama-3.2-1B-Instruct",
+  "family": "llama",
+  "params": 1240000000.0,
+  "n_layers": 16,
+  "hidden_size": 2048,
+  "n_heads": 32,
+  "n_kv_heads": 8,
+  "head_dim": 64,
+  "vocab_size": 128256,
+  "max_context": 131072,
+  "license": "llama3.2",
+  "tags": [
+   "tiny",
+   "edge"
+  ]
+ },
+ {
+  "name": "llama3.2:3b",
+  "hf_id": "meta-llama/Llama-3.2-3B-Instruct",
+  "family": "llama",
+  "params": 3210000000.0,
+  "n_layers": 28,
+  "hidden_size": 3072,
+  "n_heads": 24,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 128256,
+  "max_context": 131072,
+  "license": "llama3.2",
+  "tags": [
+   "small"
+  ]
+ },
+ {
+  "name": "llama3.1:8b",
+  "hf_id": "meta-llama/Llama-3.1-8B-Instruct",
+  "family": "llama",
+  "params": 8030000000.0,
+  "n_layers": 32,
+  "hidden_size": 4096,
+  "n_heads": 32,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 128256,
+  "max_context": 131072,
+  "license": "llama3.1",
+  "tags": [
+   "general",
+   "popular"
+  ]
+ },
+ {
+  "name": "llama3.1:70b",
+  "hf_id": "meta-llama/Llama-3.1-70B-Instruct",
+  "family": "llama",
+  "params": 70600000000.0,
+  "n_layers": 80,
+  "hidden_size": 8192,
+  "n_heads": 64,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 128256,
+  "max_context": 131072,
+  "license": "llama3.1",
+  "tags": [
+   "large",
+   "frontier-ish"
+  ]
+ },
+ {
+  "name": "llama3.1:405b",
+  "hf_id": "meta-llama/Llama-3.1-405B-Instruct",
+  "family": "llama",
+  "params": 405000000000.0,
+  "n_layers": 126,
+  "hidden_size": 16384,
+  "n_heads": 128,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 128256,
+  "max_context": 131072,
+  "license": "llama3.1",
+  "tags": [
+   "frontier",
+   "datacenter"
+  ]
+ },
+ {
+  "name": "minicpm4:8b",
+  "hf_id": "openbmb/MiniCPM4-8B",
+  "family": "minicpm",
+  "params": 8185000000.0,
+  "n_layers": 32,
+  "hidden_size": 4096,
+  "n_heads": 32,
+  "n_kv_heads": 2,
+  "head_dim": 128,
+  "vocab_size": 73448,
+  "max_context": 32768,
+  "license": "see model card",
+  "tags": [
+   "edge"
+  ]
+ },
+ {
+  "name": "mistral:7b",
+  "hf_id": "mistralai/Mistral-7B-Instruct-v0.3",
+  "family": "mistral",
+  "params": 7250000000.0,
+  "n_layers": 32,
+  "hidden_size": 4096,
+  "n_heads": 32,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 32768,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "general",
+   "popular"
+  ]
+ },
+ {
+  "name": "mistral-nemo:12b",
+  "hf_id": "mistralai/Mistral-Nemo-Instruct-2407",
+  "family": "mistral",
+  "params": 12200000000.0,
+  "n_layers": 40,
+  "hidden_size": 5120,
+  "n_heads": 32,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 131072,
+  "max_context": 131072,
+  "license": "apache-2.0",
+  "tags": [
+   "mid",
+   "long-context"
+  ]
+ },
+ {
+  "name": "codestral:22b",
+  "hf_id": "mistralai/Codestral-22B-v0.1",
+  "family": "mistral",
+  "params": 22200000000.0,
+  "n_layers": 56,
+  "hidden_size": 6144,
+  "n_heads": 48,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 32768,
+  "max_context": 32768,
+  "license": "mnpl",
+  "tags": [
+   "code"
+  ]
+ },
+ {
+  "name": "devstral:24b",
+  "hf_id": "mistralai/Devstral-Small-2507",
+  "family": "mistral",
+  "params": 23570000000.0,
+  "n_layers": 40,
+  "hidden_size": 5120,
+  "n_heads": 32,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 131072,
+  "max_context": 131072,
+  "license": "see model card",
+  "tags": [
+   "code"
+  ]
+ },
+ {
+  "name": "magistral:24b",
+  "hf_id": "mistralai/Magistral-Small-2506",
+  "family": "mistral",
+  "params": 23570000000.0,
+  "n_layers": 40,
+  "hidden_size": 5120,
+  "n_heads": 32,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 131072,
+  "max_context": 40960,
+  "license": "see model card",
+  "tags": [
+   "reasoning"
+  ]
+ },
+ {
+  "name": "mistral-small:24b",
+  "hf_id": "mistralai/Mistral-Small-24B-Instruct-2501",
+  "family": "mistral",
+  "params": 23600000000.0,
+  "n_layers": 40,
+  "hidden_size": 5120,
+  "n_heads": 32,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 131072,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "mid",
+   "workstation"
+  ]
+ },
+ {
+  "name": "mixtral:8x7b",
+  "hf_id": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+  "family": "mistral",
+  "params": 46700000000.0,
+  "active_params": 12900000000.0,
+  "n_layers": 32,
+  "hidden_size": 4096,
+  "n_heads": 32,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 32000,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "moe"
+  ]
+ },
+ {
+  "name": "olmo2:7b",
+  "hf_id": "allenai/OLMo-2-1124-7B-Instruct",
+  "family": "olmo",
+  "params": 7298000000.0,
+  "n_layers": 32,
+  "hidden_size": 4096,
+  "n_heads": 32,
+  "n_kv_heads": 32,
+  "head_dim": 128,
+  "vocab_size": 100352,
+  "max_context": 4096,
+  "license": "see model card",
+  "tags": [
+   "general",
+   "open-data"
+  ]
+ },
+ {
+  "name": "olmo2:13b",
+  "hf_id": "allenai/OLMo-2-1124-13B-Instruct",
+  "family": "olmo",
+  "params": 13720000000.0,
+  "n_layers": 40,
+  "hidden_size": 5120,
+  "n_heads": 40,
+  "n_kv_heads": 40,
+  "head_dim": 128,
+  "vocab_size": 100352,
+  "max_context": 4096,
+  "license": "see model card",
+  "tags": [
+   "mid",
+   "open-data"
+  ]
+ },
+ {
+  "name": "phi3:3.8b",
+  "hf_id": "microsoft/Phi-3-mini-4k-instruct",
+  "family": "phi",
+  "params": 3820000000.0,
+  "n_layers": 32,
+  "hidden_size": 3072,
+  "n_heads": 32,
+  "n_kv_heads": 32,
+  "head_dim": 96,
+  "vocab_size": 32064,
+  "max_context": 4096,
+  "license": "mit",
+  "tags": [
+   "small"
+  ]
+ },
+ {
+  "name": "phi4-mini:3.8b",
+  "hf_id": "microsoft/Phi-4-mini-instruct",
+  "family": "phi",
+  "params": 3840000000.0,
+  "n_layers": 32,
+  "hidden_size": 3072,
+  "n_heads": 24,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 200064,
+  "max_context": 131072,
+  "license": "mit",
+  "tags": [
+   "small"
+  ]
+ },
+ {
+  "name": "phi4:14b",
+  "hf_id": "microsoft/phi-4",
+  "family": "phi",
+  "params": 14700000000.0,
+  "n_layers": 40,
+  "hidden_size": 5120,
+  "n_heads": 40,
+  "n_kv_heads": 10,
+  "head_dim": 128,
+  "vocab_size": 100352,
+  "max_context": 16384,
+  "license": "mit",
+  "tags": [
+   "mid",
+   "reasoning"
+  ]
+ },
+ {
+  "name": "qwen2.5:0.5b",
+  "hf_id": "Qwen/Qwen2.5-0.5B-Instruct",
+  "family": "qwen",
+  "params": 490000000.0,
+  "n_layers": 24,
+  "hidden_size": 896,
+  "n_heads": 14,
+  "n_kv_heads": 2,
+  "head_dim": 64,
+  "vocab_size": 151936,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "tiny",
+   "edge"
+  ]
+ },
+ {
+  "name": "qwen2.5:1.5b",
+  "hf_id": "Qwen/Qwen2.5-1.5B-Instruct",
+  "family": "qwen",
+  "params": 1540000000.0,
+  "n_layers": 28,
+  "hidden_size": 1536,
+  "n_heads": 12,
+  "n_kv_heads": 2,
+  "head_dim": 128,
+  "vocab_size": 151936,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "tiny"
+  ]
+ },
+ {
+  "name": "qwen2.5:3b",
+  "hf_id": "Qwen/Qwen2.5-3B-Instruct",
+  "family": "qwen",
+  "params": 3090000000.0,
+  "n_layers": 36,
+  "hidden_size": 2048,
+  "n_heads": 16,
+  "n_kv_heads": 2,
+  "head_dim": 128,
+  "vocab_size": 151936,
+  "max_context": 32768,
+  "license": "qwen-research",
+  "tags": [
+   "small"
+  ]
+ },
+ {
+  "name": "qwen2.5:7b",
+  "hf_id": "Qwen/Qwen2.5-7B-Instruct",
+  "family": "qwen",
+  "params": 7620000000.0,
+  "n_layers": 28,
+  "hidden_size": 3584,
+  "n_heads": 28,
+  "n_kv_heads": 4,
+  "head_dim": 128,
+  "vocab_size": 152064,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "general",
+   "popular"
+  ]
+ },
+ {
+  "name": "qwen2.5-coder:7b",
+  "hf_id": "Qwen/Qwen2.5-Coder-7B-Instruct",
+  "family": "qwen",
+  "params": 7620000000.0,
+  "n_layers": 28,
+  "hidden_size": 3584,
+  "n_heads": 28,
+  "n_kv_heads": 4,
+  "head_dim": 128,
+  "vocab_size": 152064,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "code"
+  ]
+ },
+ {
+  "name": "qwen2.5:14b",
+  "hf_id": "Qwen/Qwen2.5-14B-Instruct",
+  "family": "qwen",
+  "params": 14800000000.0,
+  "n_layers": 48,
+  "hidden_size": 5120,
+  "n_heads": 40,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 152064,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "mid"
+  ]
+ },
+ {
+  "name": "qwen2.5:32b",
+  "hf_id": "Qwen/Qwen2.5-32B-Instruct",
+  "family": "qwen",
+  "params": 32800000000.0,
+  "n_layers": 64,
+  "hidden_size": 5120,
+  "n_heads": 40,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 152064,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "large",
+   "workstation"
+  ]
+ },
+ {
+  "name": "qwen2.5-coder:32b",
+  "hf_id": "Qwen/Qwen2.5-Coder-32B-Instruct",
+  "family": "qwen",
+  "params": 32800000000.0,
+  "n_layers": 64,
+  "hidden_size": 5120,
+  "n_heads": 40,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 152064,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "code",
+   "popular"
+  ]
+ },
+ {
+  "name": "qwen2.5:72b",
+  "hf_id": "Qwen/Qwen2.5-72B-Instruct",
+  "family": "qwen",
+  "params": 72700000000.0,
+  "n_layers": 80,
+  "hidden_size": 8192,
+  "n_heads": 64,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 152064,
+  "max_context": 32768,
+  "license": "qwen",
+  "tags": [
+   "large"
+  ]
+ },
+ {
+  "name": "qwen3:4b",
+  "hf_id": "Qwen/Qwen3-4B",
+  "family": "qwen3",
+  "params": 4020000000.0,
+  "n_layers": 36,
+  "hidden_size": 2560,
+  "n_heads": 32,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 151936,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "small",
+   "reasoning"
+  ]
+ },
+ {
+  "name": "qwen3:4b-2507",
+  "hf_id": "Qwen/Qwen3-4B-Instruct-2507",
+  "family": "qwen3",
+  "params": 4022000000.0,
+  "n_layers": 36,
+  "hidden_size": 2560,
+  "n_heads": 32,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 151936,
+  "max_context": 262144,
+  "license": "see model card",
+  "tags": [
+   "small"
+  ]
+ },
+ {
+  "name": "qwen3:8b",
+  "hf_id": "Qwen/Qwen3-8B",
+  "family": "qwen3",
+  "params": 8190000000.0,
+  "n_layers": 36,
+  "hidden_size": 4096,
+  "n_heads": 32,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 151936,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "general",
+   "reasoning"
+  ]
+ },
+ {
+  "name": "qwen3:14b",
+  "hf_id": "Qwen/Qwen3-14B",
+  "family": "qwen3",
+  "params": 14800000000.0,
+  "n_layers": 40,
+  "hidden_size": 5120,
+  "n_heads": 40,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 151936,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "mid",
+   "reasoning"
+  ]
+ },
+ {
+  "name": "qwen3:30b-a3b",
+  "hf_id": "Qwen/Qwen3-30B-A3B",
+  "family": "qwen3",
+  "params": 30500000000.0,
+  "active_params": 3300000000.0,
+  "n_layers": 48,
+  "hidden_size": 2048,
+  "n_heads": 32,
+  "n_kv_heads": 4,
+  "head_dim": 128,
+  "vocab_size": 151936,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "moe",
+   "fast"
+  ]
+ },
+ {
+  "name": "qwen3-coder:30b",
+  "hf_id": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+  "family": "qwen3",
+  "params": 30520000000.0,
+  "n_layers": 48,
+  "hidden_size": 2048,
+  "n_heads": 32,
+  "n_kv_heads": 4,
+  "head_dim": 128,
+  "vocab_size": 151936,
+  "max_context": 262144,
+  "license": "see model card",
+  "tags": [
+   "moe",
+   "code"
+  ],
+  "active_params": 3340000000.0
+ },
+ {
+  "name": "qwen3:30b-a3b-2507",
+  "hf_id": "Qwen/Qwen3-30B-A3B-Instruct-2507",
+  "family": "qwen3",
+  "params": 30520000000.0,
+  "n_layers": 48,
+  "hidden_size": 2048,
+  "n_heads": 32,
+  "n_kv_heads": 4,
+  "head_dim": 128,
+  "vocab_size": 151936,
+  "max_context": 262144,
+  "license": "see model card",
+  "tags": [
+   "moe",
+   "fast"
+  ],
+  "active_params": 3340000000.0
+ },
+ {
+  "name": "qwen3:32b",
+  "hf_id": "Qwen/Qwen3-32B",
+  "family": "qwen3",
+  "params": 32800000000.0,
+  "n_layers": 64,
+  "hidden_size": 5120,
+  "n_heads": 64,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 151936,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "large",
+   "reasoning"
+  ]
+ },
+ {
+  "name": "qwen3:235b-a22b",
+  "hf_id": "Qwen/Qwen3-235B-A22B",
+  "family": "qwen3",
+  "params": 235000000000.0,
+  "active_params": 22000000000.0,
+  "n_layers": 94,
+  "hidden_size": 4096,
+  "n_heads": 64,
+  "n_kv_heads": 4,
+  "head_dim": 128,
+  "vocab_size": 151936,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "moe",
+   "frontier"
+  ]
+ },
+ {
+  "name": "seed-oss:36b",
+  "hf_id": "ByteDance-Seed/Seed-OSS-36B-Instruct",
+  "family": "seed",
+  "params": 36150000000.0,
+  "n_layers": 64,
+  "hidden_size": 5120,
+  "n_heads": 80,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 155136,
+  "max_context": 262144,
+  "license": "see model card",
+  "tags": [
+   "large"
+  ]
+ },
+ {
+  "name": "smollm2:1.7b",
+  "hf_id": "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+  "family": "smol",
+  "params": 1710000000.0,
+  "n_layers": 24,
+  "hidden_size": 2048,
+  "n_heads": 32,
+  "n_kv_heads": 32,
+  "head_dim": 64,
+  "vocab_size": 49152,
+  "max_context": 8192,
+  "license": "apache-2.0",
+  "tags": [
+   "tiny",
+   "edge"
+  ]
+ },
+ {
+  "name": "smollm3:3b",
+  "hf_id": "HuggingFaceTB/SmolLM3-3B",
+  "family": "smol",
+  "params": 3075000000.0,
+  "n_layers": 36,
+  "hidden_size": 2048,
+  "n_heads": 16,
+  "n_kv_heads": 4,
+  "head_dim": 128,
+  "vocab_size": 128256,
+  "max_context": 65536,
+  "license": "see model card",
+  "tags": [
+   "small",
+   "reasoning"
+  ]
+ },
+ {
+  "name": "yi:34b",
+  "hf_id": "01-ai/Yi-1.5-34B-Chat",
+  "family": "yi",
+  "params": 34400000000.0,
+  "n_layers": 60,
+  "hidden_size": 7168,
+  "n_heads": 56,
+  "n_kv_heads": 8,
+  "head_dim": 128,
+  "vocab_size": 64000,
+  "max_context": 32768,
+  "license": "apache-2.0",
+  "tags": [
+   "large"
+  ]
+ }
 ]

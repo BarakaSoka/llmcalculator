@@ -24,7 +24,7 @@ from ..estimate import (
 )
 from ..hardware import detect
 from ..hardware.base import HardwareProfile
-from ..models import catalog
+from ..models import catalog, hub
 
 _PAGE = Path(__file__).with_name("app.html")
 _hardware: Optional[HardwareProfile] = None
@@ -131,6 +131,39 @@ def api_detail(name: str, workload: str = "inference", context: int = 8192,
     return data
 
 
+def api_hub_search(query: str = "", workload: str = "inference",
+                   context: int = 8192, limit: int = 20,
+                   include_gguf: bool = False) -> dict:
+    """Search the whole Hugging Face Hub and size every hit."""
+    if not query.strip():
+        return {"results": [], "count": 0, "query": query}
+    hw = hardware()
+    wl = workloads.get(workload)
+    ctx = context if wl.key == "inference" else min(context, 2048)
+    try:
+        hits = hub.search_resolved(query, limit=limit, include_gguf=include_gguf)
+    except RuntimeError as exc:
+        return {"error": str(exc), "results": [], "count": 0}
+
+    out = []
+    for r in hits:
+        row = {"id": r.hub.id, "downloads": r.hub.downloads, "likes": r.hub.likes,
+               "gated": r.hub.gated, "resolved": r.resolved, "error": r.error}
+        if r.resolved:
+            est = recommended_quant(r.spec, hw, wl, context=ctx)
+            row.update({
+                "params_b": round(r.spec.params_b, 1),
+                "active_b": round(r.spec.active_params / 1e9, 1) if r.spec.is_moe else None,
+                "quant": est.quant_name, "gb": round(est.total_gb, 1),
+                "verdict": est.verdict, "label": est.label(),
+                "utilization": round(est.utilization, 3),
+                "tokens_per_sec": round(est.tokens_per_sec, 0),
+                "max_context": r.spec.max_context,
+            })
+        out.append(row)
+    return {"results": out, "count": len(out), "query": query}
+
+
 def api_recommend(workload: str = "inference", context: int = 8192, limit: int = 8) -> dict:
     hw = hardware()
     recs = compare.recommend(hw, workloads.get(workload), context=context, limit=limit)
@@ -160,6 +193,10 @@ ROUTES = {
     "/api/detail": lambda q: api_detail(_one(q, "name"), _one(q, "workload", "inference"),
                                         int(_one(q, "context", "8192")),
                                         _one(q, "quant", "") or None),
+    "/api/hub": lambda q: api_hub_search(_one(q, "q", ""), _one(q, "workload", "inference"),
+                                         int(_one(q, "context", "8192")),
+                                         int(_one(q, "limit", "20")),
+                                         _one(q, "gguf", "") == "1"),
     "/api/recommend": lambda q: api_recommend(_one(q, "workload", "inference"),
                                               int(_one(q, "context", "8192")),
                                               int(_one(q, "limit", "8"))),

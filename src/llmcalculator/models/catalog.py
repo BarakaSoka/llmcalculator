@@ -15,7 +15,20 @@ from typing import Dict, Iterator, List, Optional
 
 from .spec import ModelSpec
 
+
+class UnsupportedArchitecture(ValueError):
+    """Raised for models this estimator deliberately will not guess at."""
+
+
 _CATALOG_PATH = Path(__file__).with_name("catalog.json")
+
+# The analytic parameter count assumes a standard attention + SwiGLU decoder.
+# State-space and hybrid models allocate their weights differently, so the
+# formula would return a confident wrong number rather than no number.
+_UNSUPPORTED_ARCH = (
+    "mamba", "rwkv", "hyena", "retnet", "griffin", "recurrentgemma",
+    "nemotronh", "zamba", "jamba", "falconmamba", "bamba", "plamo2",
+)
 _cache: Optional[Dict[str, ModelSpec]] = None
 
 
@@ -124,23 +137,49 @@ def _spec_from_config(repo_id: str, cfg: dict) -> ModelSpec:
                 return cfg[k]
         return default
 
+    arch = " ".join(cfg.get("architectures") or []) + " " + str(cfg.get("model_type", ""))
+    lowered = arch.lower().replace("_", "").replace("-", "")
+    for bad in _UNSUPPORTED_ARCH:
+        if bad in lowered:
+            raise UnsupportedArchitecture(
+                "{} uses a {} architecture. llmcalculator sizes standard "
+                "transformer decoders; its parameter and KV-cache maths do not "
+                "apply here, so it declines to guess.".format(repo_id, bad))
+
     n_layers = pick("num_hidden_layers", "n_layer", "num_layers", default=32)
     hidden = pick("hidden_size", "n_embd", "d_model", default=4096)
     n_heads = pick("num_attention_heads", "n_head", default=32)
     n_kv = pick("num_key_value_heads", "num_kv_heads", default=n_heads)
     head_dim = pick("head_dim", default=hidden // max(n_heads, 1))
-    vocab = pick("vocab_size", default=32000)
+    vocab = pick("vocab_size", "padded_vocab_size", default=32000)
     ctx = pick("max_position_embeddings", "n_positions", default=8192)
     intermediate = pick("intermediate_size", "ffn_dim", default=hidden * 4)
 
     n_experts = pick("num_local_experts", "num_experts", "n_routed_experts", default=0) or 0
     n_active = pick("num_experts_per_tok", "moe_topk", default=0) or 0
+    n_shared = pick("n_shared_experts", "shared_expert_intermediate_size", default=0) or 0
+    if n_shared and n_shared > 64:
+        # Qwen-style configs give a width here rather than a count.
+        n_shared = 1
+    # Experts are usually much narrower than the dense FFN. Using the dense
+    # `intermediate_size` for them overstates a model by the expert count.
+    moe_inter = pick("moe_intermediate_size", default=intermediate)
+    dense_first = pick("first_k_dense_replace", default=0) or 0
 
-    params = _estimate_params(n_layers, hidden, n_kv * head_dim, n_heads * head_dim,
-                              intermediate, vocab, n_experts)
+    # Tied embeddings share one matrix between input and output. Assuming two
+    # overstates a small model with a large vocabulary badly: Qwen2.5-0.5B ties
+    # a 151936 x 896 matrix, which is 27% of the whole model counted twice.
+    tied = bool(cfg.get("tie_word_embeddings", False))
+
+    params = _estimate_params(
+        n_layers, hidden, n_kv * head_dim, n_heads * head_dim, intermediate, vocab,
+        n_experts=n_experts, moe_intermediate=moe_inter, n_shared=n_shared,
+        dense_layers=dense_first, tied_embeddings=tied)
     if n_experts and n_active:
-        active = _estimate_params(n_layers, hidden, n_kv * head_dim, n_heads * head_dim,
-                                  intermediate, vocab, n_active)
+        active = _estimate_params(
+            n_layers, hidden, n_kv * head_dim, n_heads * head_dim, intermediate, vocab,
+            n_experts=n_active, moe_intermediate=moe_inter, n_shared=n_shared,
+            dense_layers=dense_first, tied_embeddings=tied)
     else:
         active = params
 
@@ -161,12 +200,32 @@ def _spec_from_config(repo_id: str, cfg: dict) -> ModelSpec:
     )
 
 
-def _estimate_params(n_layers, hidden, kv_dim, q_dim, intermediate, vocab, n_experts=0) -> float:
-    """Analytic parameter count for a standard decoder-only transformer."""
+def _estimate_params(n_layers, hidden, kv_dim, q_dim, intermediate, vocab,
+                     n_experts=0, moe_intermediate=None, n_shared=0,
+                     dense_layers=0, tied_embeddings=False) -> float:
+    """Analytic parameter count for a decoder-only transformer.
+
+    Handles the mixture-of-experts case, where the routed experts are usually
+    far narrower than the dense feed-forward width. Qwen3-30B-A3B, for example,
+    has `intermediate_size` 6144 but `moe_intermediate_size` 768; sizing its 128
+    experts with the former overstates the model roughly eightfold.
+
+    Some architectures (DeepSeek) keep the first few layers dense, which
+    `dense_layers` accounts for.
+    """
     attn = hidden * q_dim + 2 * hidden * kv_dim + q_dim * hidden
-    mlp = 3 * hidden * intermediate  # gate, up, down (SwiGLU)
+    dense_mlp = 3 * hidden * intermediate  # gate, up, down (SwiGLU)
+    norms = 2 * hidden
+
     if n_experts:
-        mlp *= n_experts
-    per_layer = attn + mlp + 2 * hidden  # + two RMSNorms
-    embeddings = 2 * vocab * hidden  # input + output, untied worst case
-    return float(n_layers * per_layer + embeddings)
+        expert_width = moe_intermediate or intermediate
+        moe_mlp = 3 * hidden * expert_width * (n_experts + n_shared)
+        dense_layers = min(int(dense_layers), int(n_layers))
+        moe_layers = max(int(n_layers) - dense_layers, 0)
+        body = (dense_layers * (attn + dense_mlp + norms)
+                + moe_layers * (attn + moe_mlp + norms))
+    else:
+        body = n_layers * (attn + dense_mlp + norms)
+
+    embeddings = (1 if tied_embeddings else 2) * vocab * hidden
+    return float(body + embeddings)

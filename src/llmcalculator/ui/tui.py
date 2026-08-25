@@ -12,7 +12,7 @@ from typing import List, Optional
 from .. import compare, workloads
 from ..estimate import Verdict, recommended_quant
 from ..hardware.base import HardwareProfile
-from ..models import catalog
+from ..models import catalog, hub
 from ..models.spec import ModelSpec
 
 _MISSING = """The TUI needs the `textual` package.
@@ -165,6 +165,7 @@ if _HAS_TEXTUAL:
             Binding("c", "cycle_context", "Context"),
             Binding("r", "show_recommended", "Recommended"),
             Binding("a", "show_all", "All models"),
+            Binding("h", "search_hub", "Hugging Face"),
         ]
 
         CONTEXTS = [2048, 4096, 8192, 16384, 32768, 131072]
@@ -179,6 +180,7 @@ if _HAS_TEXTUAL:
             self.sub_title = "what your machine can run"
             self._models: List[ModelSpec] = catalog.all_models()
             self._filter = ""
+            self._hub_specs: dict = {}  # Hub results, keyed by repo id
 
         def compose(self) -> ComposeResult:
             yield Header()
@@ -234,11 +236,17 @@ if _HAS_TEXTUAL:
         # --- events -------------------------------------------------------
 
         def on_data_table_row_highlighted(self, event) -> None:
-            if event.row_key and event.row_key.value:
-                try:
-                    self._show(catalog.get(str(event.row_key.value)))
-                except KeyError:
-                    pass
+            if not (event.row_key and event.row_key.value):
+                return
+            key = str(event.row_key.value)
+            spec = self._hub_specs.get(key)
+            if spec is not None:
+                self._show(spec)
+                return
+            try:
+                self._show(catalog.get(key))
+            except KeyError:
+                pass
 
         def on_input_changed(self, event: Input.Changed) -> None:
             if event.input.id == "search":
@@ -283,8 +291,54 @@ if _HAS_TEXTUAL:
                 self._show(recs[0].estimate.model)
             self.notify("Showing {} models suited to this machine".format(len(names)))
 
+        def action_search_hub(self) -> None:
+            """Search the whole Hub for whatever is in the filter box."""
+            query = self._filter.strip()
+            if not query:
+                self.notify("Type a search first, then press h", severity="warning")
+                self.query_one("#search", Input).focus()
+                return
+            self.notify("Searching Hugging Face for {!r}...".format(query))
+            self.run_worker(self._do_hub_search(query), exclusive=True)
+
+        async def _do_hub_search(self, query: str) -> None:
+            """Network work belongs off the UI thread; a worker keeps it responsive."""
+            import asyncio
+
+            wl = self._current_workload()
+            ctx = self.context if wl.key == "inference" else min(self.context, 2048)
+            try:
+                results = await asyncio.get_event_loop().run_in_executor(
+                    None, lambda: hub.search_resolved(query, limit=25))
+            except RuntimeError as exc:
+                self.notify(str(exc), severity="error")
+                return
+
+            table = self.query_one("#models", DataTable)
+            table.clear()
+            self._hub_specs = {}
+            shown = 0
+            for r in results:
+                if not r.resolved:
+                    continue
+                est = recommended_quant(r.spec, self.hw, wl, context=ctx)
+                style = VERDICT_STYLE[est.verdict]
+                self._hub_specs[r.hub.id] = r.spec
+                table.add_row(r.hub.id, "{:.1f}B".format(r.spec.params_b),
+                              "[{}]{}[/{}]".format(style, Verdict.SYMBOL[est.verdict], style),
+                              key=r.hub.id)
+                shown += 1
+            if shown:
+                first = next(iter(self._hub_specs.values()))
+                self._show(first)
+                self.notify("{} Hub models sized. Press a to return to the catalog.".format(shown))
+            else:
+                self.notify("Nothing on the Hub could be sized for {!r}".format(query),
+                            severity="warning")
+
         def action_show_all(self) -> None:
             self._filter = ""
+            self._hub_specs = {}
             self.query_one("#search", Input).value = ""
             self._refresh_models()
 

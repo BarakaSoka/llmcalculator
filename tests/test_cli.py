@@ -81,3 +81,22 @@ def test_bare_invocation_runs_scan():
 
 def test_help_works():
     assert run(["--help"]).returncode == 0
+
+
+# --- Hub-backed commands --------------------------------------------------
+
+def test_models_suggests_hub_search_when_catalog_misses():
+    r = run(["models", "definitely-not-in-the-catalog"])
+    assert r.returncode == 1
+    assert "llmcalculator search" in r.stdout
+
+
+def test_cache_command_reports_location():
+    r = run(["cache"])
+    assert r.returncode == 0
+    assert "Cache directory" in r.stdout
+
+
+def test_search_requires_a_query():
+    r = run(["search"])
+    assert r.returncode == 2   # argparse rejects the missing argument

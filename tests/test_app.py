@@ -48,3 +48,13 @@ def test_recommend_endpoint():
 def test_page_file_is_installed():
     assert webapp._PAGE.exists()
     assert b"llmcalculator" in webapp._PAGE.read_bytes()
+
+
+def test_hub_endpoint_empty_query_is_not_an_error():
+    d = webapp.api_hub_search("")
+    assert d["count"] == 0
+    assert "error" not in d
+
+
+def test_hub_endpoint_is_registered():
+    assert "/api/hub" in webapp.ROUTES

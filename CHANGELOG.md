@@ -6,6 +6,36 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-25
+
+### Added
+
+- **`search`** — search the whole Hugging Face Hub, not just the catalog, with
+  every result sized against your machine. Responses are cached for a week, so
+  repeat searches are instant and work offline.
+- **`trending`** — what the Hub is trending right now, sized for your hardware.
+- **`cache`** — inspect or clear the Hub response cache.
+- Hub search in the TUI (`h`) and a **Hugging Face** tab in the web app.
+- Catalog grown from 44 to 64 models across 21 families, spanning 0.5B to
+  1033B. Every new entry was generated from the model's real `config.json`
+  rather than transcribed by hand.
+
+### Fixed
+
+- **Mixture-of-experts parameter counts were wildly overstated.** Routed experts
+  use `moe_intermediate_size`, which is typically far narrower than the dense
+  `intermediate_size`. Qwen3-30B-A3B was reported as 233B rather than 30.5B.
+- **Tied embeddings were double-counted.** Models setting
+  `tie_word_embeddings` share one matrix between input and output; assuming two
+  overstated Qwen2.5-0.5B by 27%.
+- **State-space and hybrid architectures** (Mamba, RWKV, Jamba, Nemotron-H) are
+  now refused with an explanation instead of returning a confident wrong number.
+- DeepSeek-style dense prefix layers (`first_k_dense_replace`) and shared
+  experts are accounted for; ChatGLM's `padded_vocab_size` is understood.
+- The quantization advice no longer renders an unknown speed as
+  "about 0 tok/s instead of 0", and explains why the estimate is missing.
+
+
 ## [0.1.0] - 2026-08-23
 
 First release.
@@ -40,5 +70,6 @@ First release.
   console script called `llmcalc`, and installing both would leave whichever
   landed last owning the command.
 
-[Unreleased]: https://github.com/BarakaSoka/llmcalculator/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/BarakaSoka/llmcalculator/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/BarakaSoka/llmcalculator/releases/tag/v0.2.0
 [0.1.0]: https://github.com/BarakaSoka/llmcalculator/releases/tag/v0.1.0

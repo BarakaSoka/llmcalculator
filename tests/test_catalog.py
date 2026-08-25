@@ -81,3 +81,20 @@ def test_spec_from_multimodal_config_uses_text_config():
     spec = _spec_from_config("google/gemma-3-4b-it", cfg)
     assert spec.n_layers == 34
     assert spec.hidden_size == 2560
+
+
+def test_catalog_has_grown_beyond_the_first_release():
+    assert len(catalog.all_models()) >= 60
+
+
+def test_catalog_covers_a_wide_size_range():
+    sizes = [m.params_b for m in catalog.all_models()]
+    assert min(sizes) < 1.0      # something runnable on a laptop
+    assert max(sizes) > 100      # something that clearly is not
+
+
+def test_moe_entries_declare_active_params():
+    moes = [m for m in catalog.all_models() if m.is_moe]
+    assert len(moes) >= 8
+    for m in moes:
+        assert 0 < m.active_params < m.params

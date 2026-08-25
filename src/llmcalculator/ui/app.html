@@ -123,6 +123,7 @@ code { background: var(--panel-2); padding: 2px 6px; border-radius: 5px; font-si
 <div class="tabs">
   <button class="tab on" data-tab="browse">Browse models</button>
   <button class="tab" data-tab="best">Best for you</button>
+  <button class="tab" data-tab="hub">Hugging Face</button>
   <button class="tab" data-tab="compare">Compare</button>
 </div>
 
@@ -148,6 +149,20 @@ code { background: var(--panel-2); padding: 2px 6px; border-radius: 5px; font-si
 
 <section id="tab-best" class="hidden">
   <div class="card" id="best"><div class="spin">Loading...</div></div>
+</section>
+
+<section id="tab-hub" class="hidden">
+  <div class="card">
+    <h3>Search all of Hugging Face</h3>
+    <p class="sub">The catalog covers models commonly run locally. This searches the
+      whole Hub &mdash; every result is sized against your machine.</p>
+    <div class="controls" style="margin-top:14px">
+      <input type="search" id="hub-q" placeholder="e.g. granite, coder, nemotron, 3b...">
+      <label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="hub-gguf"> include GGUF repos</label>
+    </div>
+    <div id="hub-out"><div class="empty">Type a search above.</div></div>
+  </div>
 </section>
 
 <section id="tab-compare" class="hidden">
@@ -313,6 +328,36 @@ async function loadBest() {
     : '<div class="empty">Nothing fits with these settings. Try a shorter context.</div>';
 }
 
+// ---- hugging face ----
+let hubTimer;
+$('#hub-q').oninput = () => { clearTimeout(hubTimer); hubTimer = setTimeout(loadHub, 450); };
+$('#hub-gguf').onchange = loadHub;
+
+async function loadHub() {
+  const q = $('#hub-q').value.trim();
+  if (!q) { $('#hub-out').innerHTML = '<div class="empty">Type a search above.</div>'; return; }
+  $('#hub-out').innerHTML = '<div class="spin">Searching Hugging Face...</div>';
+  const d = await api('/api/hub', { q, workload: STATE.workload, context: STATE.context,
+                                    limit: 20, gguf: $('#hub-gguf').checked ? 1 : 0 });
+  if (d.error) { $('#hub-out').innerHTML = `<div class="empty">${esc(d.error)}</div>`; return; }
+  if (!d.results.length) {
+    $('#hub-out').innerHTML = '<div class="empty">Nothing on the Hub matches that.</div>'; return; }
+  $('#hub-out').innerHTML = `
+    <table><thead><tr><th>Model</th><th class="num">Size</th><th>Precision</th>
+      <th class="num">Memory</th><th class="num">Speed</th><th class="num">Downloads</th>
+      <th>Verdict</th></tr></thead>
+    <tbody>${d.results.map(r => r.resolved ? `<tr>
+      <td><b>${esc(r.id)}</b></td>
+      <td class="num">${r.params_b}B${r.active_b ? ` <span class="tag">${r.active_b}B active</span>` : ''}</td>
+      <td>${esc(r.quant)}</td><td class="num">${r.gb} GB</td>
+      <td class="num">${r.tokens_per_sec || '-'}</td>
+      <td class="num">${(r.downloads||0).toLocaleString()}</td>
+      <td><span class="badge v-${r.verdict}">${esc(r.label)}</span></td></tr>`
+      : `<tr style="opacity:.55"><td>${esc(r.id)}</td><td colspan="6"
+           style="color:var(--muted);font-size:12px">${esc(r.error)}</td></tr>`).join('')}
+    </tbody></table>`;
+}
+
 // ---- compare -------------------------------------------------------------
 function renderPicker() {
   $('#cmp-picker').innerHTML = STATE.models.slice(0, 40).map(m => `
@@ -358,6 +403,7 @@ document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
   ['browse','best','compare'].forEach(n =>
     $('#tab-' + n).classList.toggle('hidden', n !== t.dataset.tab));
   if (t.dataset.tab === 'best') loadBest();
+  if (t.dataset.tab === 'hub') $('#hub-q').focus();
   if (t.dataset.tab === 'compare') { renderPicker(); loadCompare(); }
 });
 
@@ -365,6 +411,7 @@ async function refresh() {
   await loadModels();
   if (STATE.selected) await selectModel(STATE.selected);
   if (!$('#tab-best').classList.contains('hidden')) loadBest();
+  if (!$('#tab-hub').classList.contains('hidden')) loadHub();
   if (!$('#tab-compare').classList.contains('hidden')) { renderPicker(); loadCompare(); }
 }
 
