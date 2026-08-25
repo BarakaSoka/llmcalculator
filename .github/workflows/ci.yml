@@ -90,7 +90,7 @@ jobs:
           python -m zipfile -l dist/*.whl | grep catalog.json
           python -m zipfile -l dist/*.whl | grep app.html
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
