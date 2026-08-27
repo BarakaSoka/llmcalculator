@@ -1,11 +1,12 @@
-# llmcalculator
-
+# llmcalculator  
 Work out which AI model architectures can actually run on your computer/machine — for inference,
 fine-tuning, and training.
 
 
+
 <img width="884" height="682" alt="Screenshot 2026-08-25 at 15 55 50" src="https://github.com/user-attachments/assets/2ffa57cd-692f-4bab-973b-d27d9473cd6e" />
 
+---
 
 
 It reads your real hardware, then sizes each model from its **actual
