@@ -24,6 +24,7 @@ from ..estimate import (
 )
 from ..hardware import detect
 from ..hardware.base import HardwareProfile
+from ..models import capabilities as caps
 from ..models import catalog, hub
 
 _PAGE = Path(__file__).with_name("app.html")
@@ -42,11 +43,13 @@ def hardware() -> HardwareProfile:
 
 def api_hardware() -> dict:
     hw = hardware()
-    caps = []
+    # What the machine can do, per workload - not to be confused with what a
+    # model can do, which is `api_capabilities` below.
+    can_do = []
     for wl in workloads.ALL:
         ctx = 8192 if wl.key == "inference" else 2048
         best = compare.largest_that_fits(hw, wl, context=ctx)
-        caps.append({
+        can_do.append({
             "key": wl.key,
             "label": wl.label,
             "description": wl.description,
@@ -65,16 +68,19 @@ def api_hardware() -> dict:
                   "bandwidth_gbs": a.bandwidth_gbs, "unified": a.unified_memory}
                  for a in hw.accelerators if a.vendor != "cpu"],
         "budget_gb": round(hw.budget_bytes("auto") / (1024 ** 3), 1),
-        "capabilities": caps,
+        "capabilities": can_do,
         "notes": hw.notes,
     }
 
 
-def api_models(query: str = "", workload: str = "inference", context: int = 8192) -> dict:
+def api_models(query: str = "", workload: str = "inference", context: int = 8192,
+               capability: str = "") -> dict:
     hw = hardware()
     wl = workloads.get(workload)
     ctx = context if wl.key == "inference" else min(context, 2048)
     models = catalog.search(query) if query else catalog.all_models()
+    if capability:
+        models = [m for m in models if m.has_capability(capability)]
     out = []
     for m in models:
         est = recommended_quant(m, hw, wl, context=ctx)
@@ -84,6 +90,7 @@ def api_models(query: str = "", workload: str = "inference", context: int = 8192
             "active_b": round(m.active_params / 1e9, 1) if m.is_moe else None,
             "family": m.family,
             "tags": list(m.tags),
+            "capabilities": [t.label for t in m.support().capabilities],
             "hf_id": m.hf_id,
             "max_context": m.max_context,
             "verdict": est.verdict,
@@ -93,7 +100,8 @@ def api_models(query: str = "", workload: str = "inference", context: int = 8192
             "utilization": round(est.utilization, 3),
             "tokens_per_sec": round(est.tokens_per_sec, 0),
         })
-    return {"models": out, "count": len(out)}
+    return {"models": out, "count": len(out),
+            "capability_counts": catalog.capability_counts()}
 
 
 def api_detail(name: str, workload: str = "inference", context: int = 8192,
@@ -111,6 +119,11 @@ def api_detail(name: str, workload: str = "inference", context: int = 8192,
     data["describe"] = model.describe()
     data["hf_id"] = model.hf_id
     data["label"] = est.label()
+    # Everything true about the model regardless of this machine: architecture,
+    # what it is for, how it ships, and what will load it.
+    data["spec"] = model.as_dict()
+    data["architecture_items"] = [{"label": k, "value": v}
+                                  for k, v in model.architecture_items()]
     data["breakdown"] = [{"label": k, "gb": round(v, 2)} for k, v in est.breakdown.items_gb()]
     data["workloads"] = [
         {"key": e.workload.key, "label": e.workload.label, "gb": round(e.total_gb, 1),
@@ -159,6 +172,8 @@ def api_hub_search(query: str = "", workload: str = "inference",
                 "utilization": round(est.utilization, 3),
                 "tokens_per_sec": round(est.tokens_per_sec, 0),
                 "max_context": r.spec.max_context,
+                "capabilities": [t.label for t in r.spec.support().capabilities],
+                "formats": [t.label for t in r.spec.support().formats],
             })
         out.append(row)
     return {"results": out, "count": len(out), "query": query}
@@ -186,10 +201,23 @@ def api_compare(names: list, workload: str = "inference", context: int = 8192) -
         for e in ests]}
 
 
+def api_capabilities() -> dict:
+    """The trait vocabulary, so the page can explain a chip rather than just
+    show it."""
+    return {
+        "capabilities": [t.as_dict() for t in caps.known("capability")],
+        "formats": [t.as_dict() for t in caps.known("format")],
+        "runtimes": [t.as_dict() for t in caps.known("runtime")],
+        "counts": catalog.capability_counts(),
+    }
+
+
 ROUTES = {
     "/api/hardware": lambda q: api_hardware(),
+    "/api/capabilities": lambda q: api_capabilities(),
     "/api/models": lambda q: api_models(_one(q, "q", ""), _one(q, "workload", "inference"),
-                                        int(_one(q, "context", "8192"))),
+                                        int(_one(q, "context", "8192")),
+                                        _one(q, "capability", "")),
     "/api/detail": lambda q: api_detail(_one(q, "name"), _one(q, "workload", "inference"),
                                         int(_one(q, "context", "8192")),
                                         _one(q, "quant", "") or None),

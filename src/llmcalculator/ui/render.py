@@ -10,9 +10,11 @@ from __future__ import annotations
 import os
 import shutil
 import sys
+import textwrap
 from typing import List, Optional, Sequence
 
 from ..estimate import Estimate, Verdict
+from ..models import capabilities as caps
 
 try:
     from rich.console import Console
@@ -23,7 +25,8 @@ except ImportError:
     _RICH = False
 
 _WRAPPING_COLUMNS = {"Why", "Reason", "Notes", "Tags", "Largest that fits", "Model",
-                      "Largest usable model"}
+                      "Largest usable model", "Capabilities", "Description",
+                      "Formats", "Runtimes"}
 
 VERDICT_COLOR = {
     Verdict.EASY: "green",
@@ -126,6 +129,74 @@ def _numeric_column(rows: Sequence[Sequence[str]], idx: int) -> bool:
     return True
 
 
+def _width() -> int:
+    return min(shutil.get_terminal_size((88, 24)).columns, 100)
+
+
+def labelled(pairs: Sequence[Sequence[str]], indent: str = "  ") -> None:
+    """Print label/value pairs in two aligned columns, wrapping long values."""
+    pairs = [(str(a), str(b)) for a, b in pairs]
+    if not pairs:
+        return
+    widest = max(len(a) for a, _ in pairs)
+    body = max(_width() - len(indent) - widest - 2, 24)
+    for label, value in pairs:
+        wrapped = textwrap.wrap(value, body) or [""]
+        print("{}{}  {}".format(indent, paint(label.ljust(widest), "dim"), wrapped[0]))
+        for extra in wrapped[1:]:
+            print("{}{}  {}".format(indent, " " * widest, extra))
+
+
+def trait_block(title: str, traits: Sequence[caps.Trait], describe: bool = True) -> None:
+    """A capability / format / runtime section, one trait per line."""
+    if not traits:
+        return
+    heading(title)
+    if describe:
+        labelled([(t.label, t.description or "-") for t in traits])
+    else:
+        print("  " + ", ".join(t.label for t in traits))
+
+
+def support_summary(spec, indent: str = "  ") -> None:
+    """The compact three-line version, for output that is already busy."""
+    sup = spec.support()
+    labelled([
+        ("Capabilities", sup.summary("capability") or "not stated"),
+        ("Formats", sup.summary("format")),
+        ("Runs with", sup.summary("runtime")),
+    ], indent=indent)
+
+
+def model_info(spec, describe_traits: bool = True) -> None:
+    """Everything known about a model, independent of any particular machine.
+
+    Deliberately hardware-free: what a model is, how it ships and what will
+    load it are all true before you have decided which box to run it on.
+    """
+    heading(spec.name)
+    print(paint("  " + spec.describe(), "dim"))
+    if spec.hf_id:
+        print(paint("  " + spec.hf_id, "dim"))
+
+    heading("Architecture")
+    labelled(spec.architecture_items())
+
+    sup = spec.support()
+    trait_block("Capabilities", sup.capabilities, describe_traits)
+    trait_block("Weight formats", sup.formats, describe_traits)
+    trait_block("Runtimes", sup.runtimes, describe_traits)
+
+    if sup.notes:
+        heading("Worth knowing")
+        body = _width() - 4
+        for note in sup.notes:
+            wrapped = textwrap.wrap(note, body)
+            print(paint("  - " + wrapped[0], "yellow"))
+            for extra in wrapped[1:]:
+                print(paint("    " + extra, "yellow"))
+
+
 def estimate_detail(est: Estimate) -> None:
     """The full breakdown for a single estimate."""
     m, wl = est.model, est.workload
@@ -140,6 +211,9 @@ def estimate_detail(est: Estimate) -> None:
         paint(verdict_cell(est).ljust(14), color),
         bar(est.utilization),
         est.total_gb, est.budget_gb))
+
+    print()
+    support_summary(m)
 
     print()
     print("  Settings   {} quantization, {} token context, batch {}".format(

@@ -122,6 +122,17 @@ if _HAS_TEXTUAL:
             if est.disk_gb:
                 out.append("  ~{:.1f} GB download".format(est.disk_gb))
 
+            sup = self.model.support()
+            out += ["", "[bold]What it is for[/bold]"]
+            for label, value in (("Capabilities", sup.summary("capability") or "not stated"),
+                                 ("Formats", sup.summary("format")),
+                                 ("Runs with", sup.summary("runtime"))):
+                out.append("  [dim]{:<12}[/dim] {}".format(label, value))
+
+            out += ["", "[bold]Architecture[/bold]"]
+            for label, value in self.model.architecture_items():
+                out.append("  [dim]{:<17}[/dim] {}".format(label, value))
+
             out += ["", "[bold]Memory breakdown[/bold]"]
             for label, gb in est.breakdown.items_gb():
                 pct = gb / max(est.total_gb, 1e-9)
@@ -136,9 +147,11 @@ if _HAS_TEXTUAL:
                 out.append("  {:<20} {:>7.1f} GB  [{}]{}[/{}]".format(
                     e.workload.label, e.total_gb, st, e.label(), st))
 
-            if est.notes:
+            if est.notes or sup.notes:
                 out += ["", "[bold]Notes[/bold]"]
                 for n in est.notes:
+                    out.append("  [dim]- {}[/dim]".format(n))
+                for n in sup.notes:
                     out.append("  [dim]- {}[/dim]".format(n))
             return "\n".join(out)
 
