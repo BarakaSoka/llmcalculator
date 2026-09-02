@@ -61,6 +61,64 @@ llmcalculator compare llama3.1:8b qwen2.5:32b gpt-oss:20b
 llmcalculator recommend --tag code          # good coding models for this machine
 llmcalculator context llama3.1:8b           # how much does long context cost?
 llmcalculator models qwen                   # search the built-in catalog
+llmcalculator models -c vision              # ...only models that read images
+llmcalculator info qwen3-coder:30b          # what is this model, and what runs it?
+llmcalculator capabilities                  # explain every capability and format
+```
+
+### What a model *is*, not just how big it is
+
+Fit is only half the question. Two 30B models can have identical memory
+profiles and no overlap in use, so every model also carries what it was
+trained for, the formats its weights ship in, and the engines that load them:
+
+```
+$ llmcalculator info qwen3-coder:30b
+
+qwen3-coder:30b
+  30.5B params, 3.3B active (MoE), 48 layers, GQA 8:1, 256k ctx
+
+Architecture
+  Parameters        30.52B
+  Active per token  3.34B
+  Experts           128 experts, 8 used per token
+  Attention         GQA 8:1 (32 query / 4 KV heads, head dim 128)
+  KV cache          96.00 MB per 1k tokens at fp16
+  Max context       262,144 tokens
+
+Capabilities
+  Code                Trained heavily on source code: generation, explanation
+                      and refactoring.
+  Fill-in-the-middle  Supports infilling between a prefix and a suffix, which
+                      is what editor autocomplete needs.
+  Agentic             Tuned for multi-step agent loops: planning, calling
+                      tools, and reacting to their output.
+  ...
+
+Weight formats
+  GGUF                The llama.cpp container format, with k-quants from 2 to
+                      8 bits. Runs on CPU, GPU, or a split across both.
+  ...
+
+Runtimes
+  llama.cpp           C++ inference over GGUF. The best option when the model
+                      does not fit in VRAM, because it can offload layers to
+                      the CPU.
+  ...
+```
+
+Formats and runtimes are derived rather than asserted: a standard transformer
+decoder converts to GGUF, GGUF is what llama.cpp reads, and Ollama and LM
+Studio are llama.cpp underneath. Anything beyond that — an AWQ or EXL2 build,
+a natively 4-bit release — has to be evidenced by the catalog entry or by the
+repository's own tags, so nothing is claimed on your behalf.
+
+Capabilities are searchable and filterable everywhere:
+
+```bash
+llmcalculator models --capability tools     # or -c tools
+llmcalculator recommend --tag vision        # --tag matches capabilities too
+llmcalculator search granite                # Hub results carry them as well
 ```
 
 ### Searching all of Hugging Face
@@ -144,6 +202,10 @@ llama3.1:8b  -  Inference
 
   * Comfortable   |####..............|  6.4 GB needed of 27.0 GB available
 
+  Capabilities  Chat, Code, Tool calling, Multilingual, Long context
+  Formats       Safetensors, GGUF, MLX
+  Runs with     Transformers, llama.cpp, Ollama, LM Studio, vLLM, SGLang, MLX LM, TGI
+
   Settings   Q4_K_M quantization, 8k token context, batch 1
   Speed      ~20 tokens/sec generation
 
@@ -188,10 +250,23 @@ lc.max_model_size(hw, lc.workloads.QLORA)         # 29.8
 lc.check("llama3.1:70b", hardware=lc.manual(vram_gb=48, ram_gb=128))
 ```
 
+A `ModelSpec` also answers what the model is for:
+
+```python
+spec = lc.catalog.get("gemma3:12b")
+spec.attention_kind                # 'GQA 2:1'
+spec.has_capability("vision")      # True
+spec.support().summary("runtime")  # 'Transformers, llama.cpp, Ollama, ...'
+spec.support().notes               # the caveats worth knowing before you pull it
+spec.as_dict()                     # all of the above, JSON-ready
+```
+
 Every command also takes `--json`, so it composes with other tooling:
 
 ```bash
 llmcalculator scan --json | jq '.capabilities.qlora.max_params_b'
+llmcalculator info gemma3:12b --json | jq '.capabilities[].key'
+llmcalculator models -c code --json | jq -r '.[].name'
 ```
 
 ## How the numbers are worked out

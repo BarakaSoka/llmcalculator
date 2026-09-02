@@ -6,7 +6,44 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Model information now covers what a model *is*, not only how large it is.
+  Every spec carries **capabilities** (chat, reasoning, code, vision, tool
+  calling, agentic, multilingual, long context, MoE, edge and more), the
+  **weight formats** it ships in, and the **runtimes** that load them - each
+  with a one-line description rather than a bare label.
+- More architecture detail on every spec: feed-forward width, routed and
+  active expert counts, expert width, tied embeddings, RoPE theta, sliding
+  window, published dtype, the `architectures` entry, attention kind spelled
+  out (MHA / GQA n:1 / MQA), and KV cache cost per 1k tokens.
+- `llmcalculator info <model>` prints all of it for one model, with no
+  hardware involved. `--brief` drops the descriptions; `--json` emits the lot.
+- `llmcalculator capabilities` explains the whole vocabulary - every
+  capability, weight format and runtime, with how many catalog models have
+  each capability.
+- `llmcalculator models --capability/-c <cap>` filters the catalog, the
+  listing gained a Capabilities column, and `recommend --tag` now matches a
+  capability as well as a tag.
+- `ModelSpec.support()`, `.has_capability()`, `.architecture_items()` and
+  `.as_dict()`; `catalog.by_capability()` and `catalog.capability_counts()`.
+- The browser app gained a capability filter, a "What this model is" section
+  with per-trait descriptions, an architecture table, and a
+  `/api/capabilities` endpoint. The TUI detail panel gained the same
+  information. Hub search results carry capabilities and formats too.
+
 ### Changed
+
+- `catalog.search()` matches capabilities as well as names, families and tags,
+  so `search("vision")` finds the multimodal models that never say so in their
+  name.
+- Hub search results merge repository tags into the resolved spec: which
+  formats a repo actually publishes, and its licence, come from the tags,
+  since a `config.json` cannot say. Formats beyond the derivable set (AWQ,
+  GPTQ, EXL2, native 4-bit releases) are only claimed when something evidences
+  them.
+- `check` now prints a three-line capability / format / runtime summary above
+  the memory breakdown.
 
 - Dependabot's patch and minor updates are now approved and auto-merged;
   major updates are labelled `major-update` and left for a human. CI is still

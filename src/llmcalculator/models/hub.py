@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+from . import capabilities as caps
 from .catalog import _spec_from_config
 from .spec import ModelSpec
 
@@ -203,6 +204,33 @@ def resolve_many(repo_ids: List[str], workers: int = 8,
     return out
 
 
+def apply_hub_metadata(spec: ModelSpec, hub_model: "HubModel") -> ModelSpec:
+    """Fold a repository's tags into a spec resolved from its config.json.
+
+    A config file describes the architecture and nothing else. The repository
+    tags are where the rest lives: which weight formats the repo actually
+    publishes, what licence it carries, and what the author says the model is
+    for. Both sources are needed for a complete picture.
+    """
+    tags = [str(t).lower() for t in hub_model.tags]
+    if hub_model.library:
+        tags.append(hub_model.library.lower())
+    if hub_model.pipeline:
+        tags.append(hub_model.pipeline.lower())
+
+    for t in tags:
+        if t.startswith("license:") and not spec.license:
+            spec.license = t.split(":", 1)[1]
+
+    # Strip the namespaced tags (license:mit, base_model:..., region:us) before
+    # matching; only the bare topic tags mean anything to the trait registries.
+    bare = [t for t in tags if ":" not in t]
+    spec.capabilities = caps.infer_capabilities(spec, bare)
+    spec.formats = caps.infer_formats(spec, bare)
+    spec.runtimes = caps.infer_runtimes(spec, spec.formats)
+    return spec
+
+
 @dataclass
 class HubResult:
     """A search hit with its architecture resolved."""
@@ -233,7 +261,7 @@ def search_resolved(query: str, limit: int = 15, sort: str = "downloads",
     for h in hits:
         spec = specs.get(h.id)
         if spec is not None:
-            results.append(HubResult(hub=h, spec=spec))
+            results.append(HubResult(hub=h, spec=apply_hub_metadata(spec, h)))
         else:
             reason = "gated - set HF_TOKEN" if h.gated else "no readable config.json"
             results.append(HubResult(hub=h, error=reason))
@@ -244,6 +272,10 @@ def trending(limit: int = 15, use_cache: bool = True) -> List[HubResult]:
     """What the Hub is currently trending, resolved and sizeable."""
     hits = search("", limit=limit, sort="trendingScore", use_cache=use_cache)
     specs = resolve_many([h.id for h in hits], use_cache=use_cache)
-    return [HubResult(hub=h, spec=specs.get(h.id),
-                      error="" if specs.get(h.id) else "no readable config.json")
-            for h in hits]
+    out = []
+    for h in hits:
+        spec = specs.get(h.id)
+        out.append(HubResult(hub=h,
+                             spec=apply_hub_metadata(spec, h) if spec else None,
+                             error="" if spec else "no readable config.json"))
+    return out

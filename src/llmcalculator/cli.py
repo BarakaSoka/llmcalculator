@@ -18,6 +18,7 @@ from .estimate import (
 )
 from .hardware import detect, manual
 from .hardware.base import HardwareProfile
+from .models import capabilities as caps
 from .models import catalog
 from .models import hub
 from .ui import render
@@ -264,13 +265,19 @@ def cmd_compare(args) -> int:
 def cmd_models(args) -> int:
     """List or search the catalog."""
     models = catalog.search(args.query) if args.query else catalog.all_models()
+    if args.capability:
+        models = [m for m in models if m.has_capability(args.capability)]
     if args.json:
-        print(json.dumps([{"name": m.name, "params_b": round(m.params_b, 2),
-                           "family": m.family, "hf_id": m.hf_id,
-                           "context": m.max_context, "tags": list(m.tags)}
-                          for m in models], indent=2))
+        print(json.dumps([m.as_dict() for m in models], indent=2))
         return 0
     if not models:
+        if args.capability and not args.query:
+            print("No catalogued model has the capability {!r}.".format(args.capability))
+            print()
+            print("Known capabilities: {}".format(
+                ", ".join(catalog.capability_counts())))
+            print("Explain them with: llmcalculator capabilities")
+            return 1
         print("No catalogued model matches {!r}.".format(args.query))
         print()
         print("The catalog covers {} models commonly run locally. To search all of"
@@ -281,10 +288,61 @@ def cmd_models(args) -> int:
         return 1
     rows = [[m.name, "{:.1f}B".format(m.params_b),
              "{:.1f}B".format(m.active_params / 1e9) if m.is_moe else "-",
-             m.family, render.fmt_ctx(m.max_context), ", ".join(m.tags)]
+             m.family, render.fmt_ctx(m.max_context),
+             m.support().summary("capability", limit=4)]
             for m in models]
-    render.table(["Model", "Params", "Active", "Family", "Context", "Tags"], rows,
+    render.table(["Model", "Params", "Active", "Family", "Context", "Capabilities"], rows,
                  title="{} models".format(len(models)))
+    print()
+    print(render.paint("  Full detail for any of these: llmcalculator info <model>", "dim"))
+    return 0
+
+
+def cmd_info(args) -> int:
+    """Everything known about one model, with no hardware in the picture."""
+    try:
+        model = _resolve_model(args.model, args.hf)
+    except (KeyError, RuntimeError) as exc:
+        print(render.paint("Error: {}".format(exc), "red"), file=sys.stderr)
+        return 2
+
+    if args.json:
+        print(json.dumps(model.as_dict(), indent=2))
+        return 0
+
+    render.model_info(model, describe_traits=not args.brief)
+    print()
+    print(render.paint(
+        "  Next: llmcalculator check {}   to size it for this machine".format(model.name),
+        "dim"))
+    return 0
+
+
+def cmd_capabilities(args) -> int:
+    """Explain the capability, format and runtime vocabulary."""
+    kinds = {"capabilities": ("capability", "Capabilities"),
+             "formats": ("format", "Weight formats"),
+             "runtimes": ("runtime", "Runtimes")}
+    wanted = ([(args.kind, *kinds[args.kind])] if args.kind != "all"
+              else [(name, *pair) for name, pair in kinds.items()])
+
+    if args.json:
+        print(json.dumps({name: [t.as_dict() for t in caps.known(kind)]
+                          for name, kind, _ in wanted}, indent=2))
+        return 0
+
+    counts = catalog.capability_counts()
+    for _, kind, title in wanted:
+        render.heading(title)
+        if kind == "capability":
+            rows = [[t.label, t.key, str(counts.get(t.key, 0)), t.description]
+                    for t in caps.known(kind)]
+            render.table(["Name", "Key", "Models", "Description"], rows)
+        else:
+            rows = [[t.label, t.key, t.description] for t in caps.known(kind)]
+            render.table(["Name", "Key", "Description"], rows)
+    print()
+    print(render.paint("  Filter the catalog with: llmcalculator models -c code", "dim"))
     return 0
 
 
@@ -506,7 +564,8 @@ def build_parser() -> argparse.ArgumentParser:
     s = common(sub.add_parser("recommend", help="suggest good models for your machine"))
     s.add_argument("--workload", "-w", default="inference")
     s.add_argument("--limit", "-n", type=int, default=10)
-    s.add_argument("--tag", help="only models with this tag, e.g. code, reasoning, moe")
+    s.add_argument("--tag", help="only models with this tag or capability, "
+                                 "e.g. code, reasoning, tools, vision")
     s.add_argument("--min-speed", type=float, default=0.0, metavar="TOK",
                    help="drop anything slower than this")
     s.set_defaults(func=cmd_recommend)
@@ -518,9 +577,26 @@ def build_parser() -> argparse.ArgumentParser:
     s.set_defaults(func=cmd_context)
 
     s = sub.add_parser("models", help="list or search the model catalog")
-    s.add_argument("query", nargs="?", help="filter by name, family or tag")
+    s.add_argument("query", nargs="?", help="filter by name, family, tag or capability")
+    s.add_argument("--capability", "-c", metavar="CAP",
+                   help="only models with this capability, e.g. code, vision, tools")
     s.add_argument("--json", action="store_true")
     s.set_defaults(func=cmd_models)
+
+    s = sub.add_parser("info", help="everything known about one model")
+    s.add_argument("model", help="catalog name, or a Hugging Face repo id")
+    s.add_argument("--brief", action="store_true",
+                   help="list capabilities and formats without the descriptions")
+    s.add_argument("--hf", action="store_true", help="force a Hugging Face lookup")
+    s.add_argument("--json", action="store_true")
+    s.set_defaults(func=cmd_info)
+
+    s = sub.add_parser("capabilities",
+                       help="explain every capability, weight format and runtime")
+    s.add_argument("--kind", choices=["all", "capabilities", "formats", "runtimes"],
+                   default="all")
+    s.add_argument("--json", action="store_true")
+    s.set_defaults(func=cmd_capabilities)
 
     s = common(sub.add_parser("search", help="search all of Hugging Face, not just the catalog"))
     s.add_argument("query", help="what to look for, e.g. granite, coder, 7b")

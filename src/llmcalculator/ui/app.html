@@ -99,6 +99,21 @@ tr:last-child td { border-bottom: none; }
 .notes li.warn { border-left-color: var(--tight); }
 .empty { color: var(--muted); text-align: center; padding: 40px 20px; font-size: 14px; }
 .tag { font-size: 10.5px; background: var(--panel-2); border-radius: 5px; padding: 2px 6px; color: var(--muted); }
+.traits { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 0; }
+.trait {
+  font-size: 11.5px; padding: 3px 9px; border-radius: 999px; cursor: help;
+  background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+}
+.trait.cap { border-color: var(--accent); color: var(--accent); }
+.defs { margin: 10px 0 0; display: grid; gap: 8px; }
+.def { display: grid; grid-template-columns: 130px 1fr; gap: 12px; font-size: 12.5px; }
+.def b { font-weight: 600; }
+.def span { color: var(--muted); }
+@media (max-width: 560px) { .def { grid-template-columns: 1fr; gap: 2px; } }
+details { margin-top: 10px; }
+summary { cursor: pointer; font-size: 12.5px; color: var(--muted); }
+summary:hover { color: var(--text); }
+.row .caps-line { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
 footer { margin-top: 40px; color: var(--muted); font-size: 12px; text-align: center; }
 code { background: var(--panel-2); padding: 2px 6px; border-radius: 5px; font-size: 12px; }
 .hidden { display: none !important; }
@@ -130,6 +145,7 @@ code { background: var(--panel-2); padding: 2px 6px; border-radius: 5px; font-si
 <div class="controls">
   <input type="search" id="q" placeholder="Search by name, family or tag (llama, code, moe)...">
   <select id="workload"></select>
+  <select id="capability"><option value="">any capability</option></select>
   <select id="context">
     <option value="2048">2k context</option>
     <option value="4096">4k context</option>
@@ -191,7 +207,8 @@ const gb = n => (n == null ? '-' : n.toFixed(1) + ' GB');
 const ctxLabel = n => n >= 1024 && n % 1024 === 0 ? (n/1024) + 'k' : String(n);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-let STATE = { models: [], selected: null, compare: new Set(), workload: 'inference', context: 8192 };
+let STATE = { models: [], selected: null, compare: new Set(), workload: 'inference',
+              context: 8192, capability: '' };
 
 // ---- hardware ------------------------------------------------------------
 async function loadHardware() {
@@ -223,10 +240,21 @@ async function loadHardware() {
     `<option value="${c.key}">${esc(c.label)}</option>`).join('');
 }
 
+// The capability vocabulary, used for the filter and for every tooltip.
+async function loadCapabilities() {
+  const d = await api('/api/capabilities');
+  const counts = d.counts || {};
+  $('#capability').innerHTML = '<option value="">any capability</option>' +
+    d.capabilities.filter(c => counts[c.key])
+      .map(c => `<option value="${esc(c.key)}" title="${esc(c.description)}"
+                   >${esc(c.label)} (${counts[c.key]})</option>`).join('');
+}
+
 // ---- model list ----------------------------------------------------------
 async function loadModels() {
   const data = await api('/api/models', {
-    q: $('#q').value, workload: STATE.workload, context: STATE.context });
+    q: $('#q').value, workload: STATE.workload, context: STATE.context,
+    capability: STATE.capability });
   STATE.models = data.models;
   const list = $('#list');
   if (!data.models.length) {
@@ -239,6 +267,7 @@ async function loadModels() {
         <div class="nm">${esc(m.name)}</div>
         <div class="meta">${m.params_b}B${m.active_b ? ` (${m.active_b}B active)` : ''}
           &middot; ${esc(m.quant)} &middot; ${gb(m.gb)}${m.tokens_per_sec ? ' &middot; ' + m.tokens_per_sec + ' tok/s' : ''}</div>
+        ${(m.capabilities || []).length ? `<div class="caps-line">${esc((m.capabilities || []).join(' \u00b7 '))}</div>` : ''}
       </div>
       <div class="badge v-${m.verdict}">${esc(m.label)}</div>
     </div>`).join('');
@@ -271,6 +300,8 @@ function renderDetail(d) {
     <div class="kv"><span>Context</span><span>${ctxLabel(d.context)} tokens</span></div>
     ${d.tokens_per_sec ? `<div class="kv"><span>Generation speed</span><span>~${d.tokens_per_sec} tok/s</span></div>` : ''}
     ${d.disk_gb ? `<div class="kv"><span>Download size</span><span>${gb(d.disk_gb)}</span></div>` : ''}
+
+    ${modelInfo(d)}
 
     <h3 style="margin-top:20px">Where the memory goes</h3>
     <table><tbody>${d.breakdown.map(b => `
@@ -309,6 +340,39 @@ function renderDetail(d) {
   `;
 }
 
+// ---- model information ---------------------------------------------------
+const chips = (traits, cls='') => (traits || []).map(t =>
+  `<span class="trait ${cls}" title="${esc(t.description || t.label)}">${esc(t.label)}</span>`).join('');
+
+const defs = traits => (traits || []).map(t =>
+  `<div class="def"><b>${esc(t.label)}</b><span>${esc(t.description || '')}</span></div>`).join('');
+
+function modelInfo(d) {
+  const s = d.spec || {};
+  const arch = d.architecture_items || [];
+  if (!arch.length && !(s.capabilities || []).length) return '';
+  return `
+    <h3 style="margin-top:22px">What this model is</h3>
+    <div class="traits">${chips(s.capabilities, 'cap')}</div>
+    <div class="defs">${defs(s.capabilities)}</div>
+
+    <h3 style="margin-top:22px">Architecture</h3>
+    <table><tbody>${arch.map(a => `<tr><td>${esc(a.label)}</td>
+      <td style="text-align:right">${esc(a.value)}</td></tr>`).join('')}
+    </tbody></table>
+
+    <h3 style="margin-top:22px">How it ships, and what will run it</h3>
+    <div class="traits">${chips(s.formats)}</div>
+    <div class="traits">${chips(s.runtimes)}</div>
+    <details>
+      <summary>What these formats and runtimes mean</summary>
+      <div class="defs">${defs(s.formats)}${defs(s.runtimes)}</div>
+    </details>
+
+    ${(s.notes || []).length ? `<ul class="notes">${s.notes.map(n =>
+      `<li>${esc(n)}</li>`).join('')}</ul>` : ''}`;
+}
+
 // ---- recommendations -----------------------------------------------------
 async function loadBest() {
   const d = await api('/api/recommend', {
@@ -343,17 +407,18 @@ async function loadHub() {
   if (!d.results.length) {
     $('#hub-out').innerHTML = '<div class="empty">Nothing on the Hub matches that.</div>'; return; }
   $('#hub-out').innerHTML = `
-    <table><thead><tr><th>Model</th><th class="num">Size</th><th>Precision</th>
-      <th class="num">Memory</th><th class="num">Speed</th><th class="num">Downloads</th>
-      <th>Verdict</th></tr></thead>
+    <table><thead><tr><th>Model</th><th class="num">Size</th><th>Capabilities</th>
+      <th>Precision</th><th class="num">Memory</th><th class="num">Speed</th>
+      <th class="num">Downloads</th><th>Verdict</th></tr></thead>
     <tbody>${d.results.map(r => r.resolved ? `<tr>
       <td><b>${esc(r.id)}</b></td>
       <td class="num">${r.params_b}B${r.active_b ? ` <span class="tag">${r.active_b}B active</span>` : ''}</td>
+      <td style="color:var(--muted);font-size:12px">${esc((r.capabilities || []).join(', '))}</td>
       <td>${esc(r.quant)}</td><td class="num">${r.gb} GB</td>
       <td class="num">${r.tokens_per_sec || '-'}</td>
       <td class="num">${(r.downloads||0).toLocaleString()}</td>
       <td><span class="badge v-${r.verdict}">${esc(r.label)}</span></td></tr>`
-      : `<tr style="opacity:.55"><td>${esc(r.id)}</td><td colspan="6"
+      : `<tr style="opacity:.55"><td>${esc(r.id)}</td><td colspan="7"
            style="color:var(--muted);font-size:12px">${esc(r.error)}</td></tr>`).join('')}
     </tbody></table>`;
 }
@@ -396,6 +461,8 @@ $('#q').oninput = () => { clearTimeout(timer); timer = setTimeout(() => {
   STATE.selected = null; loadModels().then(renderPicker); }, 180); };
 
 $('#workload').onchange = e => { STATE.workload = e.target.value; refresh(); };
+$('#capability').onchange = e => {
+  STATE.capability = e.target.value; STATE.selected = null; refresh(); };
 $('#context').onchange = e => { STATE.context = +e.target.value; refresh(); };
 
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
@@ -417,6 +484,7 @@ async function refresh() {
 
 (async function init() {
   await loadHardware();
+  await loadCapabilities();
   await loadModels();
 })();
 </script>
