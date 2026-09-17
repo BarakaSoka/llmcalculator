@@ -58,3 +58,25 @@ def test_hub_endpoint_empty_query_is_not_an_error():
 
 def test_hub_endpoint_is_registered():
     assert "/api/hub" in webapp.ROUTES
+
+
+def test_capabilities_endpoint_explains_every_trait():
+    d = webapp.api_capabilities()
+    assert "/api/capabilities" in webapp.ROUTES
+    for kind in ("capabilities", "formats", "runtimes"):
+        assert d[kind] and all(t["description"] for t in d[kind])
+    assert d["counts"]["chat"] > 0
+
+
+def test_models_endpoint_filters_by_capability():
+    d = webapp.api_models(capability="vision")
+    assert {m["name"] for m in d["models"]} == {"gemma3:4b", "gemma3:12b", "gemma3:27b"}
+    assert all("Vision" in m["capabilities"] for m in d["models"])
+
+
+def test_detail_endpoint_carries_the_model_information():
+    d = webapp.api_detail("mixtral:8x7b")
+    assert d["spec"]["n_experts"] == 8
+    assert {t["key"] for t in d["spec"]["capabilities"]} >= {"chat", "moe"}
+    assert any(i["label"] == "Attention" for i in d["architecture_items"])
+    assert json.dumps(d)

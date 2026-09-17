@@ -55,7 +55,9 @@ def recommend(hardware: HardwareProfile, workload: Workload = workloads.INFERENC
     results: List[Recommendation] = []
 
     for model in catalog.all_models():
-        if tag and tag not in model.tags:
+        # A tag and a capability are the same thing to someone at the command
+        # line asking for "code" - match either.
+        if tag and tag not in model.tags and not model.has_capability(tag):
             continue
 
         # Score every quantization and keep the best-scoring one, rather than

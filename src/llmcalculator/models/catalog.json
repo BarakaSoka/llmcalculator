@@ -15,6 +15,12 @@
   "tags": [
    "rag",
    "large"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "rag",
+   "multilingual"
   ]
  },
  {
@@ -32,6 +38,12 @@
   "license": "mit",
   "tags": [
    "reasoning"
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "math",
+   "code"
   ]
  },
  {
@@ -49,6 +61,12 @@
   "license": "mit",
   "tags": [
    "reasoning"
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "math",
+   "code"
   ]
  },
  {
@@ -67,6 +85,12 @@
   "tags": [
    "reasoning",
    "workstation"
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "math",
+   "code"
   ]
  },
  {
@@ -87,7 +111,16 @@
    "moe",
    "frontier",
    "datacenter"
-  ]
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "code",
+   "math",
+   "multilingual"
+  ],
+  "n_experts": 256,
+  "n_active_experts": 8
  },
  {
   "name": "deepseek-v3.1:671b",
@@ -106,7 +139,18 @@
    "moe",
    "frontier"
   ],
-  "active_params": 38570000000.0
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "tools",
+   "agentic",
+   "code",
+   "math",
+   "multilingual"
+  ],
+  "active_params": 38570000000.0,
+  "n_experts": 256,
+  "n_active_experts": 8
  },
  {
   "name": "exaone4:32b",
@@ -124,6 +168,12 @@
   "tags": [
    "large",
    "reasoning"
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "tools",
+   "multilingual"
   ]
  },
  {
@@ -141,6 +191,10 @@
   "license": "gemma",
   "tags": [
    "tiny"
+  ],
+  "capabilities": [
+   "chat",
+   "multilingual"
   ]
  },
  {
@@ -159,6 +213,11 @@
   "tags": [
    "small",
    "multimodal"
+  ],
+  "capabilities": [
+   "chat",
+   "vision",
+   "multilingual"
   ]
  },
  {
@@ -176,6 +235,10 @@
   "license": "gemma",
   "tags": [
    "general"
+  ],
+  "capabilities": [
+   "chat",
+   "multilingual"
   ]
  },
  {
@@ -194,6 +257,11 @@
   "tags": [
    "mid",
    "multimodal"
+  ],
+  "capabilities": [
+   "chat",
+   "vision",
+   "multilingual"
   ]
  },
  {
@@ -211,6 +279,10 @@
   "license": "gemma",
   "tags": [
    "large"
+  ],
+  "capabilities": [
+   "chat",
+   "multilingual"
   ]
  },
  {
@@ -229,6 +301,11 @@
   "tags": [
    "large",
    "multimodal"
+  ],
+  "capabilities": [
+   "chat",
+   "vision",
+   "multilingual"
   ]
  },
  {
@@ -248,7 +325,16 @@
    "moe",
    "reasoning"
   ],
-  "active_params": 13400000000.0
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "tools",
+   "agentic",
+   "code"
+  ],
+  "active_params": 13400000000.0,
+  "n_experts": 128,
+  "n_active_experts": 8
  },
  {
   "name": "gpt-oss:20b",
@@ -268,7 +354,21 @@
    "moe",
    "fast",
    "reasoning"
-  ]
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "tools",
+   "agentic"
+  ],
+  "formats": [
+   "mxfp4",
+   "safetensors",
+   "gguf",
+   "mlx"
+  ],
+  "n_experts": 32,
+  "n_active_experts": 4
  },
  {
   "name": "gpt-oss:120b",
@@ -287,7 +387,21 @@
   "tags": [
    "moe",
    "reasoning"
-  ]
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "tools",
+   "agentic"
+  ],
+  "formats": [
+   "mxfp4",
+   "safetensors",
+   "gguf",
+   "mlx"
+  ],
+  "n_experts": 128,
+  "n_active_experts": 4
  },
  {
   "name": "granite4:3b",
@@ -304,6 +418,11 @@
   "license": "see model card",
   "tags": [
    "small"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "multilingual"
   ]
  },
  {
@@ -321,6 +440,12 @@
   "license": "see model card",
   "tags": [
    "general"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "code",
+   "multilingual"
   ]
  },
  {
@@ -338,6 +463,12 @@
   "license": "see model card",
   "tags": [
    "large"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "code",
+   "multilingual"
   ]
  },
  {
@@ -355,6 +486,12 @@
   "license": "see model card",
   "tags": [
    "general"
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "tools",
+   "multilingual"
   ]
  },
  {
@@ -374,7 +511,15 @@
    "moe",
    "frontier"
   ],
-  "active_params": 39060000000.0
+  "capabilities": [
+   "chat",
+   "tools",
+   "agentic",
+   "code"
+  ],
+  "active_params": 39060000000.0,
+  "n_experts": 384,
+  "n_active_experts": 8
  },
  {
   "name": "lfm2:2.6b",
@@ -392,6 +537,10 @@
   "tags": [
    "tiny",
    "edge"
+  ],
+  "capabilities": [
+   "chat",
+   "multilingual"
   ]
  },
  {
@@ -411,6 +560,11 @@
    "moe",
    "fast"
   ],
+  "capabilities": [
+   "chat",
+   "code",
+   "multilingual"
+  ],
   "active_params": 1363000000.0
  },
  {
@@ -429,6 +583,9 @@
   "tags": [
    "tiny",
    "edge"
+  ],
+  "capabilities": [
+   "chat"
   ]
  },
  {
@@ -447,6 +604,11 @@
   "tags": [
    "tiny",
    "edge"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "multilingual"
   ]
  },
  {
@@ -464,6 +626,11 @@
   "license": "llama3.2",
   "tags": [
    "small"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "multilingual"
   ]
  },
  {
@@ -482,6 +649,12 @@
   "tags": [
    "general",
    "popular"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "code",
+   "multilingual"
   ]
  },
  {
@@ -500,6 +673,12 @@
   "tags": [
    "large",
    "frontier-ish"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "code",
+   "multilingual"
   ]
  },
  {
@@ -518,6 +697,12 @@
   "tags": [
    "frontier",
    "datacenter"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "code",
+   "multilingual"
   ]
  },
  {
@@ -535,6 +720,10 @@
   "license": "see model card",
   "tags": [
    "edge"
+  ],
+  "capabilities": [
+   "chat",
+   "tools"
   ]
  },
  {
@@ -553,6 +742,10 @@
   "tags": [
    "general",
    "popular"
+  ],
+  "capabilities": [
+   "chat",
+   "tools"
   ]
  },
  {
@@ -571,6 +764,11 @@
   "tags": [
    "mid",
    "long-context"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "multilingual"
   ]
  },
  {
@@ -588,6 +786,11 @@
   "license": "mnpl",
   "tags": [
    "code"
+  ],
+  "capabilities": [
+   "chat",
+   "code",
+   "fim"
   ]
  },
  {
@@ -605,6 +808,12 @@
   "license": "see model card",
   "tags": [
    "code"
+  ],
+  "capabilities": [
+   "chat",
+   "code",
+   "tools",
+   "agentic"
   ]
  },
  {
@@ -622,6 +831,12 @@
   "license": "see model card",
   "tags": [
    "reasoning"
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "tools",
+   "multilingual"
   ]
  },
  {
@@ -640,6 +855,11 @@
   "tags": [
    "mid",
    "workstation"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "multilingual"
   ]
  },
  {
@@ -658,7 +878,14 @@
   "license": "apache-2.0",
   "tags": [
    "moe"
-  ]
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "multilingual"
+  ],
+  "n_experts": 8,
+  "n_active_experts": 2
  },
  {
   "name": "olmo2:7b",
@@ -676,6 +903,9 @@
   "tags": [
    "general",
    "open-data"
+  ],
+  "capabilities": [
+   "chat"
   ]
  },
  {
@@ -694,6 +924,9 @@
   "tags": [
    "mid",
    "open-data"
+  ],
+  "capabilities": [
+   "chat"
   ]
  },
  {
@@ -711,6 +944,11 @@
   "license": "mit",
   "tags": [
    "small"
+  ],
+  "capabilities": [
+   "chat",
+   "code",
+   "math"
   ]
  },
  {
@@ -728,6 +966,12 @@
   "license": "mit",
   "tags": [
    "small"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "code",
+   "math"
   ]
  },
  {
@@ -746,6 +990,12 @@
   "tags": [
    "mid",
    "reasoning"
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "code",
+   "math"
   ]
  },
  {
@@ -764,6 +1014,10 @@
   "tags": [
    "tiny",
    "edge"
+  ],
+  "capabilities": [
+   "chat",
+   "multilingual"
   ]
  },
  {
@@ -781,6 +1035,10 @@
   "license": "apache-2.0",
   "tags": [
    "tiny"
+  ],
+  "capabilities": [
+   "chat",
+   "multilingual"
   ]
  },
  {
@@ -798,6 +1056,11 @@
   "license": "qwen-research",
   "tags": [
    "small"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "multilingual"
   ]
  },
  {
@@ -816,6 +1079,13 @@
   "tags": [
    "general",
    "popular"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "code",
+   "math",
+   "multilingual"
   ]
  },
  {
@@ -833,6 +1103,11 @@
   "license": "apache-2.0",
   "tags": [
    "code"
+  ],
+  "capabilities": [
+   "chat",
+   "code",
+   "fim"
   ]
  },
  {
@@ -850,6 +1125,13 @@
   "license": "apache-2.0",
   "tags": [
    "mid"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "code",
+   "math",
+   "multilingual"
   ]
  },
  {
@@ -868,6 +1150,13 @@
   "tags": [
    "large",
    "workstation"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "code",
+   "math",
+   "multilingual"
   ]
  },
  {
@@ -886,6 +1175,12 @@
   "tags": [
    "code",
    "popular"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "code",
+   "fim"
   ]
  },
  {
@@ -903,6 +1198,13 @@
   "license": "qwen",
   "tags": [
    "large"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "code",
+   "math",
+   "multilingual"
   ]
  },
  {
@@ -921,6 +1223,12 @@
   "tags": [
    "small",
    "reasoning"
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "tools",
+   "multilingual"
   ]
  },
  {
@@ -938,6 +1246,11 @@
   "license": "see model card",
   "tags": [
    "small"
+  ],
+  "capabilities": [
+   "chat",
+   "tools",
+   "multilingual"
   ]
  },
  {
@@ -956,6 +1269,12 @@
   "tags": [
    "general",
    "reasoning"
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "tools",
+   "multilingual"
   ]
  },
  {
@@ -974,6 +1293,12 @@
   "tags": [
    "mid",
    "reasoning"
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "tools",
+   "multilingual"
   ]
  },
  {
@@ -993,7 +1318,15 @@
   "tags": [
    "moe",
    "fast"
-  ]
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "tools",
+   "multilingual"
+  ],
+  "n_experts": 128,
+  "n_active_experts": 8
  },
  {
   "name": "qwen3-coder:30b",
@@ -1012,7 +1345,16 @@
    "moe",
    "code"
   ],
-  "active_params": 3340000000.0
+  "capabilities": [
+   "chat",
+   "tools",
+   "agentic",
+   "code",
+   "fim"
+  ],
+  "active_params": 3340000000.0,
+  "n_experts": 128,
+  "n_active_experts": 8
  },
  {
   "name": "qwen3:30b-a3b-2507",
@@ -1031,7 +1373,14 @@
    "moe",
    "fast"
   ],
-  "active_params": 3340000000.0
+  "capabilities": [
+   "chat",
+   "tools",
+   "multilingual"
+  ],
+  "active_params": 3340000000.0,
+  "n_experts": 128,
+  "n_active_experts": 8
  },
  {
   "name": "qwen3:32b",
@@ -1049,6 +1398,12 @@
   "tags": [
    "large",
    "reasoning"
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "tools",
+   "multilingual"
   ]
  },
  {
@@ -1068,7 +1423,15 @@
   "tags": [
    "moe",
    "frontier"
-  ]
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "tools",
+   "multilingual"
+  ],
+  "n_experts": 128,
+  "n_active_experts": 8
  },
  {
   "name": "seed-oss:36b",
@@ -1085,6 +1448,12 @@
   "license": "see model card",
   "tags": [
    "large"
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "tools",
+   "agentic"
   ]
  },
  {
@@ -1103,6 +1472,9 @@
   "tags": [
    "tiny",
    "edge"
+  ],
+  "capabilities": [
+   "chat"
   ]
  },
  {
@@ -1121,6 +1493,12 @@
   "tags": [
    "small",
    "reasoning"
+  ],
+  "capabilities": [
+   "chat",
+   "reasoning",
+   "tools",
+   "multilingual"
   ]
  },
  {
@@ -1138,6 +1516,10 @@
   "license": "apache-2.0",
   "tags": [
    "large"
+  ],
+  "capabilities": [
+   "chat",
+   "multilingual"
   ]
  }
 ]
